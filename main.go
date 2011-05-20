@@ -71,6 +71,7 @@ func (this *Mango) buildStack() http.HandlerFunc {
 	compiled_app := bundle(append(stack, middlewareify(this.app))...)
 	return func(w http.ResponseWriter, r *http.Request) {
 		env := make(map[string]interface{})
+		env["mango.request"] = r
 		status, headers, body := compiled_app(env)
 		w.WriteHeader(int(status))
 		for key, value := range headers {
@@ -98,12 +99,12 @@ func (this *Mango) Run(app App) os.Error {
 
 func Logger(env Env, app App) (Status, Headers, Body) {
 	status, headers, body := app(env)
-	log.Println(env["REQUEST_METHOD"], env["REQUEST_PATH"], status)
+	log.Println(env["mango.request"].(*http.Request).Method, env["mango.request"].(*http.Request).RawURL, status)
 	return status, headers, body
 }
 
-func Hello(Env) (Status, Headers, Body) {
-	return 200, map[string]string{"Content-Type": "text/html"}, Body(fmt.Sprintf("%d", time.Seconds()))
+func Hello(env Env) (Status, Headers, Body) {
+	return 200, map[string]string{}, Body(fmt.Sprintf("%d", time.Seconds()))
 }
 
 func main() {
