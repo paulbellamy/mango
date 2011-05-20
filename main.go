@@ -14,17 +14,17 @@ type Headers map[string]string
 type Body string
 
 // This is the core app the user has written
-type MangoApp func(Env) (Status, Headers, Body)
+type App func(Env) (Status, Headers, Body)
 
 // These are pieces of middleware,
-// which 'wrap' around the core MangoApp
+// which 'wrap' around the core App
 // (and each other)
-type MangoMiddleware func(Env, MangoApp) (Status, Headers, Body)
+type Middleware func(Env, App) (Status, Headers, Body)
 
-// Bundle a given list of MangoMiddleware pieces into a MangoApp
-func bundle(r ...MangoMiddleware) MangoApp {
+// Bundle a given list of Middleware pieces into a App
+func bundle(r ...Middleware) App {
 	if len(r) <= 1 {
-		// Terminate the innermost piece of MangoMiddleware
+		// Terminate the innermost piece of Middleware
 		// Basically stops it from recursing any further.
 		return func(input Env) (Status, Headers, Body) {
 			return r[0](input, func(Env) (Status, Headers, Body) {
@@ -35,34 +35,34 @@ func bundle(r ...MangoMiddleware) MangoApp {
 	return wrap(r[0], bundle(r[1:]...))
 }
 
-// Attach a piece of MangoMiddleware to the outside
-// of a MangoApp. This wraps the inner MangoApp
-// inside the outer MangoMiddleware.
-func wrap(middleware MangoMiddleware, app MangoApp) MangoApp {
+// Attach a piece of Middleware to the outside
+// of a App. This wraps the inner App
+// inside the outer Middleware.
+func wrap(middleware Middleware, app App) App {
 	return func(input Env) (Status, Headers, Body) {
 		return middleware(input, app)
 	}
 }
 
-// Convert a MangoApp into MangoMiddleware
-// We convert the core app into a MangoMiddleware
+// Convert a App into Middleware
+// We convert the core app into a Middleware
 // so we can pass it to Bundle as part of the
-// stack. Because the MangoApp does not call its
-// upstream method, the resulting MangoMiddleware
+// stack. Because the App does not call its
+// upstream method, the resulting Middleware
 // will just ignore any upstream passed to it.
-func middlewareify(app MangoApp) MangoMiddleware {
-	return func(input Env, upstream MangoApp) (Status, Headers, Body) {
+func middlewareify(app App) Middleware {
+	return func(input Env, upstream App) (Status, Headers, Body) {
 		return app(input)
 	}
 }
 
 type Mango struct {
 	address    string
-	middleware []MangoMiddleware
-	app        MangoApp
+	middleware []Middleware
+	app        App
 }
 
-func (this *Mango) Middleware(middleware ...MangoMiddleware) {
+func (this *Mango) Middleware(middleware ...Middleware) {
 	this.middleware = middleware
 }
 
@@ -80,7 +80,7 @@ func (this *Mango) buildStack() http.HandlerFunc {
 	}
 }
 
-func (this *Mango) Run(app MangoApp) os.Error {
+func (this *Mango) Run(app App) os.Error {
 	this.app = app
 	if this.address == "" {
 		this.address = "0.0.0.0:8000"
@@ -96,7 +96,7 @@ func (this *Mango) Run(app MangoApp) os.Error {
  * Begin Example Usage
  ************************************/
 
-func Logger(env Env, app MangoApp) (Status, Headers, Body) {
+func Logger(env Env, app App) (Status, Headers, Body) {
 	status, headers, body := app(env)
 	log.Println(env["REQUEST_METHOD"], env["REQUEST_PATH"], status)
 	return status, headers, body
