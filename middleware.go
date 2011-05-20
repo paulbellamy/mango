@@ -4,45 +4,21 @@ import (
 	"fmt"
 )
 
-type MangoMiddlewareInterface interface {
-	Call(string) string
+type MangoApp func(string) string
+type MangoMiddleware func(string, []MangoMiddleware) string
+
+func Logger(in string, upstream []MangoMiddleware) string {
+	return fmt.Sprintf("Logger\n%s\nLogger", upstream[0](in, upstream[1:]))
 }
 
-type MangoMiddleware struct {
-	upstream MangoMiddlewareInterface
+func Sessions(in string, upstream []MangoMiddleware) string {
+	return fmt.Sprintf("Sessions\n%s\nSessions", upstream[0](in, upstream[1:]))
 }
 
-func (this *MangoMiddleware) Call(in string) string {
-	return this.upstream.Call(in)
-}
-
-
-type Logger struct {
-	MangoMiddleware
-}
-
-func (this *Logger) Call(in string) string {
-	return fmt.Sprintf("Logger\n%s\nLogger", this.upstream.Call(in))
-}
-
-type Sessions struct {
-	MangoMiddleware
-}
-
-func (this *Sessions) Call(in string) string {
-	return fmt.Sprintf("Sessions\n%s\nSessions", this.upstream.Call(in))
-}
-
-type App struct{}
-
-func (this *App) Call(in string) string {
+func App(in string, upstream []MangoMiddleware) string {
 	return "App"
 }
 
 func main() {
-	logger := new(Logger)
-	logger.upstream = new(App)
-	sessions := new(Sessions)
-	sessions.upstream = logger
-	fmt.Printf(sessions.Call("1"))
+	fmt.Printf(Sessions("1", []MangoMiddleware{Logger, App}))
 }
