@@ -73,10 +73,10 @@ func (this *Mango) buildStack() http.HandlerFunc {
 		env := make(map[string]interface{})
 		env["mango.request"] = r
 		status, headers, body := compiled_app(env)
-		w.WriteHeader(int(status))
 		for key, value := range headers {
 			w.Header().Set(key, value)
 		}
+		w.WriteHeader(int(status))
 		fmt.Fprintf(w, string(body))
 	}
 }
