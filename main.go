@@ -97,19 +97,22 @@ func (this *Mango) Run(app App) os.Error {
  * Begin Example Usage
  ************************************/
 
-func Logger(env Env, app App) (Status, Headers, Body) {
-	status, headers, body := app(env)
-	log.Println(env["mango.request"].(*http.Request).Method, env["mango.request"].(*http.Request).RawURL, status)
-	return status, headers, body
+// An example of how to pass runtime config to Middleware
+func Logger(prefix string) Middleware {
+	return func(env Env, app App) (Status, Headers, Body) {
+		status, headers, body := app(env)
+		log.Println(prefix, env["mango.request"].(*http.Request).Method, env["mango.request"].(*http.Request).RawURL, status)
+		return status, headers, body
+	}
 }
 
 func Hello(env Env) (Status, Headers, Body) {
-	return 200, map[string]string{}, Body(fmt.Sprintf("%d", time.Seconds()))
+	return 200, map[string]string{"Never-Gonna": "Give you up!"}, Body(fmt.Sprintf("%d", time.Seconds()))
 }
 
 func main() {
 	mango := new(Mango)
 	mango.address = ":3000"
-	mango.Middleware(Logger)
+	mango.Middleware(Logger("my_custom_prefix:"))
 	mango.Run(Hello)
 }
