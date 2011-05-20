@@ -62,9 +62,8 @@ type Mango struct {
 	app        MangoApp
 }
 
-func (this *Mango) Middleware(middleware ...MangoMiddleware) os.Error {
+func (this *Mango) Middleware(middleware ...MangoMiddleware) {
 	this.middleware = middleware
-	return nil
 }
 
 func (this *Mango) buildStack() http.HandlerFunc {
@@ -91,6 +90,18 @@ func (this *Mango) Run(app MangoApp) os.Error {
 	return http.ListenAndServe(this.address, nil)
 }
 
+
+/*************************************
+ * End Mango Source
+ * Begin Example Usage
+ ************************************/
+
+func Logger(env Env, app MangoApp) (Status, Headers, Body) {
+	status, headers, body := app(env)
+	log.Println(env["REQUEST_METHOD"], env["REQUEST_PATH"], status)
+	return status, headers, body
+}
+
 func Hello(Env) (Status, Headers, Body) {
 	return 200, map[string]string{"Content-Type": "text/html"}, Body(fmt.Sprintf("%d", time.Seconds()))
 }
@@ -98,5 +109,6 @@ func Hello(Env) (Status, Headers, Body) {
 func main() {
 	mango := new(Mango)
 	mango.address = ":3000"
+	mango.Middleware(Logger)
 	mango.Run(Hello)
 }
