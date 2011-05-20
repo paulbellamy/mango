@@ -8,26 +8,26 @@ import (
 	"time"
 )
 
-type Request *http.Request
+type Env map[string]interface{}
 type Status int
 type Headers map[string]string
 type Body string
 
 // This is the core app the user has written
-type App func(Request) (Status, Headers, Body)
+type App func(Env) (Status, Headers, Body)
 
 // These are pieces of middleware,
 // which 'wrap' around the core App
 // (and each other)
-type Middleware func(Request, App) (Status, Headers, Body)
+type Middleware func(Env, App) (Status, Headers, Body)
 
 // Bundle a given list of Middleware pieces into a App
 func bundle(r ...Middleware) App {
 	if len(r) <= 1 {
 		// Terminate the innermost piece of Middleware
 		// Basically stops it from recursing any further.
-		return func(input Request) (Status, Headers, Body) {
-			return r[0](input, func(Request) (Status, Headers, Body) {
+		return func(input Env) (Status, Headers, Body) {
+			return r[0](input, func(Env) (Status, Headers, Body) {
 				panic("Core Mango App should never call it's upstream function.")
 			})
 		}
@@ -39,7 +39,7 @@ func bundle(r ...Middleware) App {
 // of a App. This wraps the inner App
 // inside the outer Middleware.
 func wrap(middleware Middleware, app App) App {
-	return func(input Request) (Status, Headers, Body) {
+	return func(input Env) (Status, Headers, Body) {
 		return middleware(input, app)
 	}
 }
@@ -51,7 +51,7 @@ func wrap(middleware Middleware, app App) App {
 // upstream method, the resulting Middleware
 // will just ignore any upstream passed to it.
 func middlewareify(app App) Middleware {
-	return func(input Request, upstream App) (Status, Headers, Body) {
+	return func(input Env, upstream App) (Status, Headers, Body) {
 		return app(input)
 	}
 }
@@ -70,7 +70,8 @@ func (this *Mango) buildStack() http.HandlerFunc {
 	stack := this.middleware
 	compiled_app := bundle(append(stack, middlewareify(this.app))...)
 	return func(w http.ResponseWriter, r *http.Request) {
-		status, headers, body := compiled_app(r)
+		env := make(map[string]interface{})
+		status, headers, body := compiled_app(env)
 		w.WriteHeader(int(status))
 		for key, value := range headers {
 			w.Header().Set(key, value)
@@ -95,13 +96,13 @@ func (this *Mango) Run(app App) os.Error {
  * Begin Example Usage
  ************************************/
 
-func Logger(req Request, app App) (Status, Headers, Body) {
-	status, headers, body := app(req)
-	log.Println(req.Method, req.RawURL, status)
+func Logger(env Env, app App) (Status, Headers, Body) {
+	status, headers, body := app(env)
+	log.Println(env["REQUEST_METHOD"], env["REQUEST_PATH"], status)
 	return status, headers, body
 }
 
-func Hello(Request) (Status, Headers, Body) {
+func Hello(Env) (Status, Headers, Body) {
 	return 200, map[string]string{"Content-Type": "text/html"}, Body(fmt.Sprintf("%d", time.Seconds()))
 }
 
