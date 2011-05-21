@@ -1,7 +1,7 @@
 include $(GOROOT)/src/Make.inc
 
 TARG=mango
-GOFMT=gofmt -s -spaces=true -tabindent=false -tabwidth=2
+GOFMT=gofmt
 
 GOFILES=\
 				mango.go\
