@@ -58,21 +58,21 @@ func middlewareify(app App) Middleware {
   }
 }
 
-type Mango struct {
+type Stack struct {
   Address    string
   middleware []Middleware
   app        App
 }
 
-func (this *Mango) Version() []int {
+func (this *Stack) Version() []int {
   return []int{0, 1}
 }
 
-func (this *Mango) Middleware(middleware ...Middleware) {
+func (this *Stack) Middleware(middleware ...Middleware) {
   this.middleware = middleware
 }
 
-func (this *Mango) buildStack() http.HandlerFunc {
+func (this *Stack) buildStack() http.HandlerFunc {
   stack := this.middleware
   compiled_app := bundle(append(stack, middlewareify(this.app))...)
   return func(w http.ResponseWriter, r *http.Request) {
@@ -114,12 +114,12 @@ func (this *Mango) buildStack() http.HandlerFunc {
   }
 }
 
-func (this *Mango) Run(app App) os.Error {
+func (this *Stack) Run(app App) os.Error {
   this.app = app
   if this.Address == "" {
     this.Address = "0.0.0.0:8000"
   }
-  log.Println("Starting Mango Server On:", this.Address)
+  log.Println("Starting Mango Stack On:", this.Address)
   http.HandleFunc("/", this.buildStack())
   return http.ListenAndServe(this.Address, nil)
 }

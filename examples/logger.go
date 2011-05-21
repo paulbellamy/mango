@@ -9,8 +9,8 @@ func Hello(env Env) (Status, Headers, Body) {
 }
 
 func main() {
-  mango := new(Mango)
-  mango.address = ":3000"
-  mango.Middleware(Logger)
-  mango.Run(Hello)
+  stack := new(mango.Stack)
+  stack.address = ":3000"
+  stack.Middleware(Logger)
+  stack.Run(Hello)
 }

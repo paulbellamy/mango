@@ -9,7 +9,7 @@ func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
 }
 
 func main() {
-  app := new(mango.Mango)
-  app.Address = ":3000"
-  app.Run(Hello)
+  stack := new(mango.Stack)
+  stack.Address = ":3000"
+  stack.Run(Hello)
 }
