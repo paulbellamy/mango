@@ -11,5 +11,6 @@ func Hello(env Env) (Status, Headers, Body) {
 func main() {
 	mango := new(Mango)
 	mango.address = ":3000"
+  mango.Middleware(Logger)
 	mango.Run(Hello)
 }
