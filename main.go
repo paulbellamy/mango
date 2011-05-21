@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"http"
 	"log"
 	"os"
+	"template"
 	"time"
 )
 
@@ -106,6 +108,37 @@ func Logger(prefix string) Middleware {
 	}
 }
 
+func ShowErrors(templateString string) Middleware {
+	if templateString == "" {
+		templateString = `
+      <html>
+      <body>
+        <p>
+          {Error|html}
+        </p>
+      </body>
+      </html>
+    `
+	}
+
+	errorTemplate := template.MustParse(templateString, nil)
+
+	return func(env Env, app App) (status Status, headers Headers, body Body) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("Error: ", err)
+				buffer := bytes.NewBufferString("")
+				errorTemplate.Execute(buffer, struct{ Error string }{err.(string)})
+				status = 500
+				headers = make(map[string]string)
+				body = Body(buffer.String())
+			}
+		}()
+
+		return app(env)
+	}
+}
+
 func Hello(env Env) (Status, Headers, Body) {
 	return 200, map[string]string{"Never-Gonna": "Give you up!"}, Body(fmt.Sprintf("%d", time.Seconds()))
 }
@@ -113,6 +146,6 @@ func Hello(env Env) (Status, Headers, Body) {
 func main() {
 	mango := new(Mango)
 	mango.address = ":3000"
-	mango.Middleware(Logger("my_custom_prefix:"))
+	mango.Middleware(Logger("my_custom_prefix:"), ShowErrors(""))
 	mango.Run(Hello)
 }
