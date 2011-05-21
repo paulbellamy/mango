@@ -5,6 +5,8 @@ GOFMT=gofmt
 
 GOFILES=\
 				mango.go\
+				logger.go\
+				show_errors.go\
 
 include $(GOROOT)/src/Make.pkg
 

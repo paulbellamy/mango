@@ -1,13 +1,9 @@
 package mango
 
 import (
-	"bytes"
 	"fmt"
 	"http"
-	"log"
 	"os"
-	"strings"
-	"template"
 )
 
 type Env map[string]interface{}
@@ -95,53 +91,7 @@ func (this *Stack) Run(app App) os.Error {
 	if this.Address == "" {
 		this.Address = "0.0.0.0:8000"
 	}
-	log.Println("Starting Mango Stack On:", this.Address)
+	fmt.Println("Starting Mango Stack On: %s", this.Address)
 	http.HandleFunc("/", this.buildStack())
 	return http.ListenAndServe(this.Address, nil)
-}
-
-
-/*************************************
- * End Mango Source
- * Begin Example Usage
- ************************************/
-
-// An example of how to pass runtime config to Middleware
-func Logger(prefix string) Middleware {
-	return func(env Env, app App) (Status, Headers, Body) {
-		status, headers, body := app(env)
-		log.Println(prefix, env["mango.request"].(*http.Request).Method, env["mango.request"].(*http.Request).RawURL, status)
-		return status, headers, body
-	}
-}
-
-func ShowErrors(templateString string) Middleware {
-	if templateString == "" {
-		templateString = `
-      <html>
-      <body>
-        <p>
-          {Error|html}
-        </p>
-      </body>
-      </html>
-    `
-	}
-
-	errorTemplate := template.MustParse(templateString, nil)
-
-	return func(env Env, app App) (status Status, headers Headers, body Body) {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Println("Error: ", err)
-				buffer := bytes.NewBufferString("")
-				errorTemplate.Execute(buffer, struct{ Error string }{err.(string)})
-				status = 500
-				headers = make(map[string]string)
-				body = Body(buffer.String())
-			}
-		}()
-
-		return app(env)
-	}
 }
