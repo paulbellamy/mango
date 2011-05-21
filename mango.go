@@ -3,10 +3,20 @@ package mango
 import (
 	"fmt"
 	"http"
+	"log"
 	"os"
 )
 
 type Env map[string]interface{}
+
+func (this Env) Logger() *log.Logger {
+	if this["mango.logger"] == nil {
+		this["mango.logger"] = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	}
+
+	return this["mango.logger"].(*log.Logger)
+}
+
 type Status int
 type Headers map[string]string
 type Body string
