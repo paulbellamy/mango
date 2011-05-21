@@ -11,4 +11,5 @@ include $(GOROOT)/src/Make.pkg
 format:
 	${GOFMT} -w ${GOFILES}
 	${GOFMT} -w mango_test.go
-	${GOFMT} -w examples/*.go
+	${GOFMT} -w examples/hello.go
+	${GOFMT} -w examples/logger.go
