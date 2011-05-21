@@ -1,21 +1,18 @@
 package mango
 
-import (
-	"http"
-)
+import ()
 
-func prepareSession(cookies []*http.Cookie, key, secret string) map[string]interface{} {
-	return make(map[string]interface{})
+func prepareSession(env Env, key, secret string) {
 }
 
-func commitSession(headers Headers, attributes map[string]interface{}, key, secret string) {
+func commitSession(headers Headers, env Env, key, secret string) {
 }
 
 func Sessions(secret, key string) Middleware {
 	return func(env Env, app App) (Status, Headers, Body) {
-		env["mango.session"] = prepareSession(env.Request().Cookie, key, secret)
+		prepareSession(env, key, secret)
 		status, headers, body := app(env)
-		commitSession(headers, env["mango.session"].(map[string]interface{}), key, secret)
+		commitSession(headers, env, key, secret)
 		return status, headers, body
 	}
 }
