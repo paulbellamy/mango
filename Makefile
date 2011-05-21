@@ -7,6 +7,7 @@ GOFILES=\
 				mango.go\
 				logger.go\
 				show_errors.go\
+				sessions.go\
 
 include $(GOROOT)/src/Make.pkg
 

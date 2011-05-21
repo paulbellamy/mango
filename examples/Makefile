@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-ALL=hello logger
+ALL=hello logger session
 
 all: $(ALL)
 

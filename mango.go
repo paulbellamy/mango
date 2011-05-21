@@ -29,6 +29,10 @@ func (this Env) Request() *Request {
 	return this["mango.request"].(*Request)
 }
 
+func (this Env) Session() map[string]interface{} {
+	return this["mango.session"].(map[string]interface{})
+}
+
 // This is the core app the user has written
 type App func(Env) (Status, Headers, Body)
 
