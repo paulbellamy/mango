@@ -77,35 +77,11 @@ func (this *Stack) buildStack() http.HandlerFunc {
   compiled_app := bundle(append(stack, middlewareify(this.app))...)
   return func(w http.ResponseWriter, r *http.Request) {
     env := make(map[string]interface{})
-    env["REQUEST_METHOD"] = r.Method
-    env["REQUEST_PATH"] = r.URL.Path
-    env["PATH_INFO"] = r.URL.Path
-    env["QUERY_STRING"] = r.URL.RawQuery // failing
-    env["SERVER_HOST"] = r.Host
-    split_host := strings.Split(r.Host, ":", 2)
-    env["SERVER_NAME"] = split_host[0]
-    env["SERVER_PORT"] = split_host[1]
-    env["REMOTE_ADDR"] = r.RemoteAddr
-
-    if strings.ToUpper(r.URL.Scheme) == "HTTPS" {
-      env["HTTPS"] = true
-      env["HTTPS_HOST"] = r.Host
-      env["HTTPS_USER_AGENT"] = r.UserAgent
-      env["HTTPS_COOKIE"] = r.Cookie
-    } else {
-      env["HTTP"] = true
-      env["HTTP_HOST"] = r.Host
-      env["HTTP_USER_AGENT"] = r.UserAgent
-      env["HTTP_COOKIE"] = r.Cookie
-    }
-
     env["mango.request"] = r
     env["mango.version"] = this.Version()
-    env["mango.url_scheme"] = r.URL.Scheme // "http" or "https" depending on URL scheme // failing
-    env["mango.input"] = r.Body            // input stream
-    //env["mango.errors"] // error stream
 
     status, headers, body := compiled_app(env)
+
     for key, value := range headers {
       w.Header().Set(key, value)
     }
