@@ -7,6 +7,14 @@ import (
 	"os"
 )
 
+type Request struct {
+	*http.Request
+}
+
+type Status int
+type Headers map[string]string
+type Body string
+
 type Env map[string]interface{}
 
 func (this Env) Logger() *log.Logger {
@@ -17,9 +25,9 @@ func (this Env) Logger() *log.Logger {
 	return this["mango.logger"].(*log.Logger)
 }
 
-type Status int
-type Headers map[string]string
-type Body string
+func (this Env) Request() *Request {
+	return this["mango.request"].(*Request)
+}
 
 // This is the core app the user has written
 type App func(Env) (Status, Headers, Body)
@@ -83,7 +91,7 @@ func (this *Stack) buildStack() http.HandlerFunc {
 	compiled_app := bundle(append(stack, middlewareify(this.app))...)
 	return func(w http.ResponseWriter, r *http.Request) {
 		env := make(map[string]interface{})
-		env["mango.request"] = r
+		env["mango.request"] = &Request{r}
 		env["mango.version"] = this.Version()
 
 		status, headers, body := compiled_app(env)
