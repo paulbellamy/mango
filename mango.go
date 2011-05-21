@@ -1,4 +1,4 @@
-package main
+package mango
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"template"
-	"time"
 )
 
 type Env map[string]interface{}
@@ -137,15 +136,4 @@ func ShowErrors(templateString string) Middleware {
 
 		return app(env)
 	}
-}
-
-func Hello(env Env) (Status, Headers, Body) {
-	return 200, map[string]string{"Never-Gonna": "Give you up!"}, Body(fmt.Sprintf("%d", time.Seconds()))
-}
-
-func main() {
-	mango := new(Mango)
-	mango.address = ":3000"
-	mango.Middleware(Logger("my_custom_prefix:"), ShowErrors(""))
-	mango.Run(Hello)
 }
