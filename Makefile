@@ -16,3 +16,4 @@ format:
 	${GOFMT} -w mango_test.go
 	${GOFMT} -w examples/hello.go
 	${GOFMT} -w examples/logger.go
+	${GOFMT} -w examples/session.go

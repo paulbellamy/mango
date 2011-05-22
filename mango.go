@@ -113,7 +113,7 @@ func (this *Stack) Run(app App) os.Error {
 	if this.Address == "" {
 		this.Address = "0.0.0.0:8000"
 	}
-	fmt.Println("Starting Mango Stack On: %s", this.Address)
+	fmt.Println("Starting Mango Stack On:", this.Address)
 	http.HandleFunc("/", this.buildStack())
 	return http.ListenAndServe(this.Address, nil)
 }
