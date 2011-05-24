@@ -90,9 +90,13 @@ func (this *Stack) Middleware(middleware ...Middleware) {
 	this.middleware = middleware
 }
 
-func (this *Stack) buildStack() http.HandlerFunc {
-	stack := this.middleware
-	compiled_app := bundle(append(stack, middlewareify(this.app))...)
+func (this *Stack) Compile(app App) App {
+  this.app = app
+	return bundle(append(this.middleware, middlewareify(this.app))...)
+}
+
+func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
+  compiled_app := this.Compile(app)
 	return func(w http.ResponseWriter, r *http.Request) {
 		env := make(map[string]interface{})
 		env["mango.request"] = &Request{r}
@@ -109,11 +113,10 @@ func (this *Stack) buildStack() http.HandlerFunc {
 }
 
 func (this *Stack) Run(app App) os.Error {
-	this.app = app
 	if this.Address == "" {
 		this.Address = "0.0.0.0:8000"
 	}
 	fmt.Println("Starting Mango Stack On:", this.Address)
-	http.HandleFunc("/", this.buildStack())
+	http.HandleFunc("/", this.HandlerFunc(app))
 	return http.ListenAndServe(this.Address, nil)
 }
