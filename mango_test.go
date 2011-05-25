@@ -27,6 +27,11 @@ func sessionsTestServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{}, Body("Hello World!")
 }
 
+func showErrorsTestServer(env Env) (Status, Headers, Body) {
+	panic("foo!")
+	return 200, Headers{}, Body("Hello World!")
+}
+
 func init() {
 	runtime.GOMAXPROCS(4)
 
@@ -42,6 +47,10 @@ func init() {
 	sessionsStack := new(Stack)
 	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
 	testRoutes["/sessions"] = sessionsStack.Compile(sessionsTestServer)
+
+	showErrorsStack := new(Stack)
+	showErrorsStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
+	testRoutes["/show_errors"] = showErrorsStack.Compile(showErrorsTestServer)
 
 	testServer.Middleware(Routing(testRoutes))
 	testServer.Address = "localhost:3000"
@@ -128,5 +137,30 @@ func TestSessions(t *testing.T) {
 func BenchmarkSessions(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Get("http://localhost:3000/sessions")
+	}
+}
+
+func TestShowErrors(t *testing.T) {
+	// Request against it
+	response, _, err := client.Get("http://localhost:3000/show_errors")
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if response.StatusCode != 500 {
+		t.Error("Expected status to equal 500, got:", response.StatusCode)
+	}
+
+	expected := "<html><body>foo!</body></html>"
+	got, _ := ioutil.ReadAll(response.Body)
+	if string(got) != expected {
+		t.Error("Expected response body to equal: \"", expected, "\" got: \"", string(got), "\"")
+	}
+}
+
+func BenchmarkShowErrors(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		client.Get("http://localhost:3000/show_errors")
 	}
 }
