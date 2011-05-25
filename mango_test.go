@@ -53,9 +53,9 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func BenchmarkHelloWorld(b *testing.B) {
-  for i := 0; i < b.N; i++ {
-    client.Get("http://localhost:3000/hello")
-  }
+	for i := 0; i < b.N; i++ {
+		client.Get("http://localhost:3000/hello")
+	}
 }
 
 func loggerTestServer(env Env) (Status, Headers, Body) {
@@ -82,7 +82,7 @@ func TestLogger(t *testing.T) {
 }
 
 func BenchmarkLogger(b *testing.B) {
-  for i := 0; i < b.N; i++ {
-    client.Get("http://localhost:3000/logger")
-  }
+	for i := 0; i < b.N; i++ {
+		client.Get("http://localhost:3000/logger")
+	}
 }
