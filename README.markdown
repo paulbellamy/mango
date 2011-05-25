@@ -1,4 +1,4 @@
-(Disclaimer: Mango is extremely experimental, so don't whine to me if it eats your children.)
+(Disclaimer: Mango is extremely experimental, so don't whine to me when it eats your children.)
 
 # Mango
 
