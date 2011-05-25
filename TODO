@@ -1,6 +1,5 @@
 * Better cookie handler
   * Domain/Expiry
-  * Setting multiple cookies
 
 POTENTIAL MIDDLEWARE
 ====================
