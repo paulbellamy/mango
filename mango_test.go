@@ -32,6 +32,14 @@ func showErrorsTestServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{}, Body("Hello World!")
 }
 
+func routingATestServer(env Env) (Status, Headers, Body) {
+	return 200, Headers{}, Body("Server A")
+}
+
+func routingBTestServer(env Env) (Status, Headers, Body) {
+	return 200, Headers{}, Body("Server B")
+}
+
 func init() {
 	runtime.GOMAXPROCS(4)
 
@@ -51,6 +59,13 @@ func init() {
 	showErrorsStack := new(Stack)
 	showErrorsStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
 	testRoutes["/show_errors"] = showErrorsStack.Compile(showErrorsTestServer)
+
+	routingStack := new(Stack)
+	routingTestRoutes := make(map[string]App)
+	routingTestRoutes["/routing/[0-9]+"] = routingATestServer
+	routingTestRoutes["/routing/[a-z]+"] = routingBTestServer
+	routingStack.Middleware(Routing(routingTestRoutes))
+	testRoutes["/routing(.*)"] = routingStack.Compile(helloWorld)
 
 	testServer.Middleware(Routing(testRoutes))
 	testServer.Address = "localhost:3000"
@@ -162,5 +177,47 @@ func TestShowErrors(t *testing.T) {
 func BenchmarkShowErrors(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Get("http://localhost:3000/show_errors")
+	}
+}
+
+func TestRouting(t *testing.T) {
+	// Request server a
+	response, _, err := client.Get("http://localhost:3000/routing/123")
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if response.StatusCode != 200 {
+		t.Error("Expected status to equal 200, got:", response.StatusCode)
+	}
+
+	expected := "Server A"
+	body, _ := ioutil.ReadAll(response.Body)
+	if string(body) != expected {
+		t.Error("Expected response body to equal: \"", expected, "\" got: \"", string(body), "\"")
+	}
+
+	// Request server b
+	response, _, err = client.Get("http://localhost:3000/routing/abc")
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if response.StatusCode != 200 {
+		t.Error("Expected status to equal 200, got:", response.StatusCode)
+	}
+
+	expected = "Server B"
+	body, _ = ioutil.ReadAll(response.Body)
+	if string(body) != expected {
+		t.Error("Expected response body to equal: \"", expected, "\" got: \"", string(body), "\"")
+	}
+}
+
+func BenchmarkRouting(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		client.Get("http://localhost:3000/routing/123")
 	}
 }
