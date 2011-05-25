@@ -52,6 +52,12 @@ func TestHelloWorld(t *testing.T) {
 	}
 }
 
+func BenchmarkHelloWorld(b *testing.B) {
+  for i := 0; i < b.N; i++ {
+    client.Get("http://localhost:3000/hello")
+  }
+}
+
 func loggerTestServer(env Env) (Status, Headers, Body) {
 	env.Logger().Println("Never gonna give you up")
 	return 200, make(map[string]string), Body("Hello World!")
@@ -73,4 +79,10 @@ func TestLogger(t *testing.T) {
 	if loggerBuffer.String() != expected {
 		t.Error("Expected logger to print: \"", expected, "\" got: \"", loggerBuffer.String(), "\"")
 	}
+}
+
+func BenchmarkLogger(b *testing.B) {
+  for i := 0; i < b.N; i++ {
+    client.Get("http://localhost:3000/logger")
+  }
 }
