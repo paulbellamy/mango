@@ -6,12 +6,12 @@ import (
 
 // Our default handler
 func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-	return 200, map[string]string{}, mango.Body("Hello World!")
+	return 200, mango.Headers{}, mango.Body("Hello World!")
 }
 
 // Our handler for /goodbye
 func Goodbye(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-	return 200, map[string]string{}, mango.Body("Goodbye World!")
+	return 200, mango.Headers{}, mango.Body("Goodbye World!")
 }
 
 func main() {

@@ -12,7 +12,7 @@ func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, m
 	if status == 500 {
 		// Silence it!
 		status = 200
-		headers = make(map[string]string)
+		headers = mango.Headers{}
 		body = "Silence is golden!"
 	}
 

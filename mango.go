@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"http"
 	"log"
+	"net/textproto"
 	"os"
 )
 
@@ -12,8 +13,25 @@ type Request struct {
 }
 
 type Status int
-type Headers map[string]string
 type Body string
+
+type Headers http.Header
+
+func (h Headers) Add(key, value string) {
+	textproto.MIMEHeader(h).Add(key, value)
+}
+
+func (h Headers) Set(key, value string) {
+	textproto.MIMEHeader(h).Set(key, value)
+}
+
+func (h Headers) Get(key string) string {
+	return textproto.MIMEHeader(h).Get(key)
+}
+
+func (h Headers) Del(key string) {
+	textproto.MIMEHeader(h).Del(key)
+}
 
 type Env map[string]interface{}
 
@@ -104,8 +122,10 @@ func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
 
 		status, headers, body := compiled_app(env)
 
-		for key, value := range headers {
-			w.Header().Set(key, value)
+		for key, values := range headers {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
 		}
 		w.WriteHeader(int(status))
 		fmt.Fprintf(w, string(body))

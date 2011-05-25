@@ -89,7 +89,7 @@ func prepareSession(env Env, key, secret string) {
 }
 
 func commitSession(headers Headers, env Env, key, secret, domain string) {
-	headers["Set-Cookie"] = fmt.Sprintf("%s=%s; Domain=%s;", key, encodeCookie(env["mango.session"].(map[string]interface{}), secret), domain)
+	headers.Add("Set-Cookie", fmt.Sprintf("%s=%s; Domain=%s;", key, encodeCookie(env["mango.session"].(map[string]interface{}), secret), domain))
 }
 
 func Sessions(secret, key, domain string) Middleware {

@@ -11,7 +11,7 @@ func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
 	// To remove a session attribute delete it from the map
 	env.Session()["old_session_attribute"] = nil, false
 
-	return 200, map[string]string{}, mango.Body("Hello World!")
+	return 200, mango.Headers{}, mango.Body("Hello World!")
 }
 
 func main() {

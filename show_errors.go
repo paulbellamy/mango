@@ -26,7 +26,7 @@ func ShowErrors(templateString string) Middleware {
 				buffer := bytes.NewBufferString("")
 				errorTemplate.Execute(buffer, struct{ Error string }{err.(string)})
 				status = 500
-				headers = make(map[string]string)
+				headers = Headers{}
 				body = Body(buffer.String())
 			}
 		}()
