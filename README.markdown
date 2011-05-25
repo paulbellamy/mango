@@ -2,7 +2,7 @@
 
 # Mango
 
-Mango is a modular web-application framework inspired by [Rack](http://github.com/rack/rack) and [PEP333](http://www.python.org/dev/peps/pep-0333/).
+Mango is a modular web-application framework for Go, inspired by [Rack](http://github.com/rack/rack) and [PEP333](http://www.python.org/dev/peps/pep-0333/).
 
 ## Overview
 
@@ -21,28 +21,37 @@ Applications are of the form:
   }
 
 Where:
-  * mango.Env is a map[string]interface{} of the environment
-    * It also has accessors for several other environment attributes:
-      * mango.Env.Request() is the http.Request object
-      * mango.Env.Session() is the map[string]interface for the session (only if using the Sessions middleware)
-      * mango.Env.Logger() is the default logger for the app (or your custom logger if using the Logger middleware)
-  * mango.Status is an integer for the HTTP status code for the response
-  * mango.Headers is a map[string]string of the response headers
-  * mango.Body is a string for the response body
+
+* mango.Env is a map[string]interface{} of the environment
+  * It also has accessors for several other environment attributes:
+    * mango.Env.Request() is the http.Request object
+    * mango.Env.Session() is the map[string]interface for the session (only if using the Sessions middleware)
+    * mango.Env.Logger() is the default logger for the app (or your custom logger if using the Logger middleware)
+* mango.Status is an integer for the HTTP status code for the response
+* mango.Headers is a map[string]string of the response headers
+* mango.Body is a string for the response body
 
 ## Available Modules
 
-  * Sessions
-    Usage: Sessions(app_secret, cookie_name string)
-    Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
-    
-  * Logger
-    Usage: Logger(custom_logger *log.Logger)
-    Provides a way to set a custom log.Logger object for the app. If this middleware is not provided Mango will set up a default logger to os.Stdout for the app to log to.
+* Sessions
 
-  * ShowErrors
-    Usage: ShowErrors(templateString string)
-    Catch any panics thrown from the app, and display them in an HTML template. If templateString is "", a default template is used. Not recommended to use in production as it could provide information helpful to attackers.
+  Usage: Sessions(app\_secret, cookie\_name string)
+  Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
+  
+* Logger
+
+  Usage: Logger(custom\_logger \*log.Logger)
+  Provides a way to set a custom log.Logger object for the app. If this middleware is not provided Mango will set up a default logger to os.Stdout for the app to log to.
+
+* ShowErrors
+
+  Usage: ShowErrors(templateString string)
+  Catch any panics thrown from the app, and display them in an HTML template. If templateString is "", a default template is used. Not recommended to use the default template in production as it could provide information helpful to attackers.
+
+* Routing
+
+  Usage: Routing(routes map[string]App)
+  "routes" is of the form { "/path1(.\*)": sub-stack1, "/path2(.\*)": sub-stack2 }.  It lets us route different requests to different mango sub-stacks based on regexing the path.
 
 ## Example App
 
@@ -67,7 +76,7 @@ Where:
 
 ## Custom Middleware
 
-Building middleware for Mango is moderately easy.
+Building middleware for Mango is fairly straightforward.
 
 If you build some middleware and think others might find it useful, please let me know so I can include it in the core Mango source.  The success of Mango really depends on having excellent middleware packages.
 
