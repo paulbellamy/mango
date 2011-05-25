@@ -17,7 +17,7 @@ As in Rack, the API is very minimal.
 Applications are of the form:
 
   func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-    return 200, map[string]string{}, "Hello World!"
+    return 200, mango.Headers{}, mango.Body("Hello World!")
   }
 
 Where:
@@ -28,7 +28,7 @@ Where:
     * mango.Env.Session() is the map[string]interface for the session (only if using the Sessions middleware)
     * mango.Env.Logger() is the default logger for the app (or your custom logger if using the Logger middleware)
 * mango.Status is an integer for the HTTP status code for the response
-* mango.Headers is a map[string]string of the response headers
+* mango.Headers is a map[string][]string of the response headers (similar to http.Header)
 * mango.Body is a string for the response body
 
 ## Available Modules
@@ -63,7 +63,7 @@ Where:
 
   func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
     env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawUrl)
-    return 200, map[string]string{}, mango.Body("Hello World!")
+    return 200, mango.Headers{}, mango.Body("Hello World!")
   }
 
   func main() {
@@ -90,7 +90,7 @@ An extremely basic middleware package is simply a function:
     if status == 500 {
       // Silence it!
       status = 200
-      headers = make(map[string]string)
+      headers = mango.Headers{}
       body = "Silence is golden!"
     }
 
