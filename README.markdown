@@ -35,7 +35,7 @@ Where:
 
 * Sessions
 
-  Usage: Sessions(app\_secret, cookie\_name string)
+  Usage: Sessions(app\_secret, cookie\_name, cookie\_domain string)
   Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
   
 * Logger

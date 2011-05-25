@@ -17,6 +17,6 @@ func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
 func main() {
 	stack := new(mango.Stack)
 	stack.Address = ":3000"
-	stack.Middleware(mango.Sessions("my_secret", "my_session_key"))
+	stack.Middleware(mango.Sessions("my_secret", "my_session_key", ".my.domain.com"))
 	stack.Run(Hello)
 }
