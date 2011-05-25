@@ -91,12 +91,12 @@ func (this *Stack) Middleware(middleware ...Middleware) {
 }
 
 func (this *Stack) Compile(app App) App {
-  this.app = app
+	this.app = app
 	return bundle(append(this.middleware, middlewareify(this.app))...)
 }
 
 func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
-  compiled_app := this.Compile(app)
+	compiled_app := this.Compile(app)
 	return func(w http.ResponseWriter, r *http.Request) {
 		env := make(map[string]interface{})
 		env["mango.request"] = &Request{r}

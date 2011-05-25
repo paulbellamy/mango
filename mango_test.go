@@ -14,20 +14,20 @@ var loggerBuffer = &bytes.Buffer{}
 var client = http.Client{}
 
 func init() {
-  runtime.GOMAXPROCS(4)
+	runtime.GOMAXPROCS(4)
 
-  testRoutes := make(map[string]App)
+	testRoutes := make(map[string]App)
 
-  testRoutes["/hello"] = new(Stack).Compile(helloWorld)
+	testRoutes["/hello"] = new(Stack).Compile(helloWorld)
 
-  loggerStack := new(Stack)
-  custom_logger := log.New(loggerBuffer, "prefixed:", 0)
-  loggerStack.Middleware(Logger(custom_logger))
-  testRoutes["/logger"] = loggerStack.Compile(loggerTestServer)
+	loggerStack := new(Stack)
+	custom_logger := log.New(loggerBuffer, "prefixed:", 0)
+	loggerStack.Middleware(Logger(custom_logger))
+	testRoutes["/logger"] = loggerStack.Compile(loggerTestServer)
 
-  testServer.Middleware(Routing(testRoutes))
-  testServer.Address = "localhost:3000"
-  go testServer.Run(helloWorld)
+	testServer.Middleware(Routing(testRoutes))
+	testServer.Address = "localhost:3000"
+	go testServer.Run(helloWorld)
 }
 
 func helloWorld(env Env) (Status, Headers, Body) {
@@ -36,7 +36,7 @@ func helloWorld(env Env) (Status, Headers, Body) {
 
 func TestHelloWorld(t *testing.T) {
 	// Request against it
-  response, _, err := client.Get("http://localhost:3000/hello")
+	response, _, err := client.Get("http://localhost:3000/hello")
 
 	if err != nil {
 		t.Error(err)
@@ -59,7 +59,7 @@ func loggerTestServer(env Env) (Status, Headers, Body) {
 
 func TestLogger(t *testing.T) {
 	// Request against it
-  response, _, err := client.Get("http://localhost:3000/logger")
+	response, _, err := client.Get("http://localhost:3000/logger")
 
 	if err != nil {
 		t.Error(err)
@@ -69,8 +69,8 @@ func TestLogger(t *testing.T) {
 		t.Error("Expected status to equal 200, got:", response.StatusCode)
 	}
 
-  expected := "prefixed:Never gonna give you up\n"
+	expected := "prefixed:Never gonna give you up\n"
 	if loggerBuffer.String() != expected {
-		t.Error("Expected logger to print: \"", expected, "\" got: \"", loggerBuffer.String(),"\"")
+		t.Error("Expected logger to print: \"", expected, "\" got: \"", loggerBuffer.String(), "\"")
 	}
 }
