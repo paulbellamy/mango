@@ -35,12 +35,12 @@ Where:
 
 * Sessions
 
-  Usage: Sessions(app\_secret, cookie\_name, cookie\_domain string)
+  Usage: Sessions(app_secret, cookie_name, cookie_domain string)
   Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
   
 * Logger
 
-  Usage: Logger(custom\_logger \*log.Logger)
+  Usage: Logger(custom_logger \*log.Logger)
   Provides a way to set a custom log.Logger object for the app. If this middleware is not provided Mango will set up a default logger to os.Stdout for the app to log to.
 
 * ShowErrors
@@ -126,7 +126,7 @@ To use this middleware we would do:
 
 For more complex middleware we may want to pass it configuration parameters. An example middleware package is one which will replace any image tags with funny pictures of cats:
 
-    func Cats(cat\_images []string) mango.Middleware {
+    func Cats(cat_images []string) mango.Middleware {
       // Initial setup stuff here
       // Done on application setup
 
@@ -149,7 +149,7 @@ For more complex middleware we may want to pass it configuration parameters. An 
       }
     }
 
-This works by building a closure (function) based on the parameters we pass, and returning it as the middleware. Through the magic of closures, the value we pass for cat\_images gets built into the function returned.
+This works by building a closure (function) based on the parameters we pass, and returning it as the middleware. Through the magic of closures, the value we pass for cat_images gets built into the function returned.
 
 To use our middleware we would do:
 
