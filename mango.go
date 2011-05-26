@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"http"
 	"log"
+	"net/textproto"
 	"os"
 )
 
@@ -12,8 +13,25 @@ type Request struct {
 }
 
 type Status int
-type Headers map[string]string
 type Body string
+
+type Headers http.Header
+
+func (h Headers) Add(key, value string) {
+	textproto.MIMEHeader(h).Add(key, value)
+}
+
+func (h Headers) Set(key, value string) {
+	textproto.MIMEHeader(h).Set(key, value)
+}
+
+func (h Headers) Get(key string) string {
+	return textproto.MIMEHeader(h).Get(key)
+}
+
+func (h Headers) Del(key string) {
+	textproto.MIMEHeader(h).Del(key)
+}
 
 type Env map[string]interface{}
 
@@ -90,9 +108,13 @@ func (this *Stack) Middleware(middleware ...Middleware) {
 	this.middleware = middleware
 }
 
-func (this *Stack) buildStack() http.HandlerFunc {
-	stack := this.middleware
-	compiled_app := bundle(append(stack, middlewareify(this.app))...)
+func (this *Stack) Compile(app App) App {
+	this.app = app
+	return bundle(append(this.middleware, middlewareify(this.app))...)
+}
+
+func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
+	compiled_app := this.Compile(app)
 	return func(w http.ResponseWriter, r *http.Request) {
 		env := make(map[string]interface{})
 		env["mango.request"] = &Request{r}
@@ -100,8 +122,10 @@ func (this *Stack) buildStack() http.HandlerFunc {
 
 		status, headers, body := compiled_app(env)
 
-		for key, value := range headers {
-			w.Header().Set(key, value)
+		for key, values := range headers {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
 		}
 		w.WriteHeader(int(status))
 		fmt.Fprintf(w, string(body))
@@ -109,11 +133,10 @@ func (this *Stack) buildStack() http.HandlerFunc {
 }
 
 func (this *Stack) Run(app App) os.Error {
-	this.app = app
 	if this.Address == "" {
 		this.Address = "0.0.0.0:8000"
 	}
 	fmt.Println("Starting Mango Stack On:", this.Address)
-	http.HandleFunc("/", this.buildStack())
+	http.HandleFunc("/", this.HandlerFunc(app))
 	return http.ListenAndServe(this.Address, nil)
 }

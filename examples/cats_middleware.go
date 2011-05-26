@@ -11,7 +11,7 @@ func Cats(cat_images []string) mango.Middleware {
 	// Done on application setup
 
 	// Initialize our regex for finding image links
-	regex := regexp.MustCompile("[\"']*(.jpg|.png)[\"']")
+	regex := regexp.MustCompile("[^\"']+(.jpg|.png|.gif)")
 
 	// This is our middleware's request handler
 	return func(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {

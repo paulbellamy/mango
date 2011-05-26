@@ -1,12 +1,10 @@
 * Better cookie handler
   * Domain/Expiry
-  * Setting multiple cookies
 
 POTENTIAL MIDDLEWARE
 ====================
 
 * Test module (to allow easy testing of apps)
-* Routing (Route different paths to different sub-stacks)
 * Lint for validation (Enforce http spec)
 * Static-File/Directory serving
 * JSONP support

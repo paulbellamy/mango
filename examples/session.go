@@ -11,12 +11,12 @@ func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
 	// To remove a session attribute delete it from the map
 	env.Session()["old_session_attribute"] = nil, false
 
-	return 200, map[string]string{}, mango.Body("Hello World!")
+	return 200, mango.Headers{}, mango.Body("Hello World!")
 }
 
 func main() {
 	stack := new(mango.Stack)
 	stack.Address = ":3000"
-	stack.Middleware(mango.Sessions("my_secret", "my_session_key"))
+	stack.Middleware(mango.Sessions("my_secret", "my_session_key", ".my.domain.com"))
 	stack.Run(Hello)
 }

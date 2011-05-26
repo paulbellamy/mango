@@ -5,7 +5,7 @@ import (
 )
 
 func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-	return 200, map[string]string{}, mango.Body("Hello World!")
+	return 200, mango.Headers{}, mango.Body("Hello World!")
 }
 
 func main() {

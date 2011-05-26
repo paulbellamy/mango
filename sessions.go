@@ -88,15 +88,15 @@ func prepareSession(env Env, key, secret string) {
 	env["mango.session"] = make(map[string]interface{})
 }
 
-func commitSession(headers Headers, env Env, key, secret string) {
-	headers["Set-Cookie"] = fmt.Sprintf("%s=%s;", key, encodeCookie(env["mango.session"].(map[string]interface{}), secret))
+func commitSession(headers Headers, env Env, key, secret, domain string) {
+	headers.Add("Set-Cookie", fmt.Sprintf("%s=%s; Domain=%s;", key, encodeCookie(env["mango.session"].(map[string]interface{}), secret), domain))
 }
 
-func Sessions(secret, key string) Middleware {
+func Sessions(secret, key, domain string) Middleware {
 	return func(env Env, app App) (status Status, headers Headers, body Body) {
 		prepareSession(env, key, secret)
 		status, headers, body = app(env)
-		commitSession(headers, env, key, secret)
+		commitSession(headers, env, key, secret, domain)
 		return status, headers, body
 	}
 }
