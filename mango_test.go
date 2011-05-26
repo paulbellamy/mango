@@ -67,6 +67,15 @@ func init() {
 	routingStack.Middleware(Routing(routingTestRoutes))
 	testRoutes["/routing(.*)"] = routingStack.Compile(helloWorld)
 
+	fullStack := new(Stack)
+	fullStackTestRoutes := make(map[string]App)
+	fullStackTestRoutes["/full_stack/[0-9]+"] = routingATestServer
+	fullStackTestRoutes["/full_stack/[a-z]+"] = routingBTestServer
+	fullStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"),
+		Logger(custom_logger),
+		Routing(fullStackTestRoutes))
+	testRoutes["/full_stack(.*)"] = fullStack.Compile(helloWorld)
+
 	testServer.Middleware(Routing(testRoutes))
 	testServer.Address = "localhost:3000"
 	go testServer.Run(helloWorld)
@@ -219,5 +228,11 @@ func TestRouting(t *testing.T) {
 func BenchmarkRouting(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Get("http://localhost:3000/routing/123")
+	}
+}
+
+func BenchmarkFullStack(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		client.Get("http://localhost:3000/full_stack/123")
 	}
 }
