@@ -16,9 +16,9 @@ As in Rack, the API is very minimal.
 
 Applications are of the form:
 
-  func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-    return 200, mango.Headers{}, mango.Body("Hello World!")
-  }
+    func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+      return 200, mango.Headers{}, mango.Body("Hello World!")
+    }
 
 Where:
 
@@ -55,24 +55,39 @@ Where:
 
 ## Example App
 
-  package main
+    package main
 
-  import (
-    "mango"
-  )
+    import (
+      "mango"
+    )
 
-  func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-    env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawUrl)
-    return 200, mango.Headers{}, mango.Body("Hello World!")
-  }
+    func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawUrl)
+      return 200, mango.Headers{}, mango.Body("Hello World!")
+    }
 
-  func main() {
+    func main() {
+      stack := new(mango.Stack)
+      stack.Address = ":3000"
+      stack.Middleware(ShowErrors(""))
+      stack.Run(Hello)
+    }
+
+## Mango Stacks
+
+Mango revolves around the idea of a "stack", which is a collection of middleware and an application.  Stacks can be compiled without being run.  When you compile a stack it returns a Mango App which incorporates all of the middleware and the application.  We can compile a Mango stack like:
+
     stack := new(mango.Stack)
-    stack.Address = ":3000"
-    stack.Middleware(ShowErrors(""))
-    stack.Run(Hello)
-  }
+    var compiled mango.App = stack.Compile(Hello)
 
+This compiled stack can be passed to the Routing middleware as a "sub-stack".
+
+Stack can also be compiled into an http.HandlerFunc by calling:
+
+    stack := new(mango.Stack)
+    var listener http.HandlerFunc = stack.HandlerFunc(Hello)
+
+This returns a http.HandlerFunc ready to be passed to http.ListenAndServe, which incorporates the entire Mango stack.
 
 ## Custom Middleware
 
@@ -82,76 +97,75 @@ If you build some middleware and think others might find it useful, please let m
 
 An extremely basic middleware package is simply a function:
 
-  func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
-    // Call our upstream app
-    status, headers, body := app.Call(env)
+    func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
+      // Call our upstream app
+      status, headers, body := app.Call(env)
 
-    // If we got an error
-    if status == 500 {
-      // Silence it!
-      status = 200
-      headers = mango.Headers{}
-      body = "Silence is golden!"
+      // If we got an error
+      if status == 500 {
+        // Silence it!
+        status = 200
+        headers = mango.Headers{}
+        body = "Silence is golden!"
+      }
+
+      // Pass the response back to the client
+      return status, headers, body
     }
-
-    // Pass the response back to the client
-    return status, headers, body
-  }
 
 To use this middleware we would do:
 
-  func main() {
-    stack := new(mango.Stack)
-    stack.Address = ":3000"
+    func main() {
+      stack := new(mango.Stack)
+      stack.Address = ":3000"
 
-    stack.Middleware(SilenceErrors) // Include our custom middleware
+      stack.Middleware(SilenceErrors) // Include our custom middleware
 
-    stack.Run(Hello)
-  }
+      stack.Run(Hello)
+    }
 
 For more complex middleware we may want to pass it configuration parameters. An example middleware package is one which will replace any image tags with funny pictures of cats:
 
-  func Cats(cat\_images []string) mango.Middleware {
-    // Initial setup stuff here
-    // Done on application setup
+    func Cats(cat\_images []string) mango.Middleware {
+      // Initial setup stuff here
+      // Done on application setup
 
-    // Initialize our regex for finding image links
-    regex := regexp.MustCompile("[\"']*(.jpg|.png)[\"']")
+      // Initialize our regex for finding image links
+      regex := regexp.MustCompile("[\"']*(.jpg|.png)[\"']")
 
-    // This is our middleware's request handler
-    return func(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
-      // Call the upstream application
-      status, headers, body := app(env)
+      // This is our middleware's request handler
+      return func(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
+        // Call the upstream application
+        status, headers, body := app(env)
 
-      // Pick a random cat image
-      image_url := cat_images[rand.Int()%len(cat_images)]
+        // Pick a random cat image
+        image_url := cat_images[rand.Int()%len(cat_images)]
 
-      // Substitute in our cat picture
-      body = mango.Body(regex.ReplaceAllString(string(body), image_url))
+        // Substitute in our cat picture
+        body = mango.Body(regex.ReplaceAllString(string(body), image_url))
 
-      // Send the modified response onwards
-      return status, headers, body
+        // Send the modified response onwards
+        return status, headers, body
+      }
     }
-  }
 
 This works by building a closure (function) based on the parameters we pass, and returning it as the middleware. Through the magic of closures, the value we pass for cat\_images gets built into the function returned.
 
 To use our middleware we would do:
 
-  func main() {
+    func main() {
 
-    stack := new(mango.Stack)
-    stack.Address = ":3000"
+      stack := new(mango.Stack)
+      stack.Address = ":3000"
 
-    // Initialize our cats middleware with our list of cat_images
-    cat_images := []string{"ceiling_cat.jpg", "itteh_bitteh_kittehs.jpg", "monorail_cat.jpg"}
-    cats_middleware = Cats(cat_images)
+      // Initialize our cats middleware with our list of cat_images
+      cat_images := []string{"ceiling_cat.jpg", "itteh_bitteh_kittehs.jpg", "monorail_cat.jpg"}
+      cats_middleware = Cats(cat_images)
 
-    stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
+      stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
 
-    stack.Run(Hello)
-  }
-
+      stack.Run(Hello)
+    }
 
 ## About
 
