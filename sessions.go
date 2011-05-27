@@ -3,7 +3,7 @@ package mango
 import (
 	"bytes"
 	"hash"
-	"crypto/sha1"
+	"crypto/hmac"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -12,9 +12,8 @@ import (
 )
 
 func hashCookie(data, secret string) (sum string) {
-	var h hash.Hash = sha1.New()
+	var h hash.Hash = hmac.NewSHA1([]byte(secret))
 	h.Write([]byte(data))
-	h.Write([]byte(secret))
 	return string(h.Sum())
 }
 

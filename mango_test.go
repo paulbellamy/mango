@@ -146,8 +146,8 @@ func TestSessions(t *testing.T) {
 		t.Error("Expected Set-Cookie name to equal: \"", expected_name, "\" got: \"", response.SetCookie[0].Name, "\"")
 	}
 
-	// base 64 encoded, hashed, and gob encoded stuff
-	expected_value := "Dv+BBAEC/4IAAQwBEAAANf+CAAEOdGVzdF9hdHRyaWJ1dGUGc3RyaW5nDBkAF05ldmVyIGdvbm5hIGdpdmUgeW91IHVw--q0x2Xt9XBekiKpL2/MlQ50TcOqg="
+	// base 64 encoded, hmac-hashed, and gob encoded stuff
+	expected_value := "Dv+BBAEC/4IAAQwBEAAANf+CAAEOdGVzdF9hdHRyaWJ1dGUGc3RyaW5nDBkAF05ldmVyIGdvbm5hIGdpdmUgeW91IHVw--bdHyJ5lvPpk6EoZiSSSiHKZtQHk="
 	if response.SetCookie[0].Value != expected_value {
 		t.Error("Expected Set-Cookie value to equal: \"", expected_value, "\" got: \"", response.SetCookie[0].Value, "\"")
 	}

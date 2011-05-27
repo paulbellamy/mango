@@ -101,7 +101,7 @@ type Stack struct {
 }
 
 func (this *Stack) Version() []int {
-	return []int{0, 1}
+	return []int{0, 2}
 }
 
 func (this *Stack) Middleware(middleware ...Middleware) {
