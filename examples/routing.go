@@ -16,7 +16,7 @@ func Goodbye(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
 
 func main() {
 	stack := new(mango.Stack)
-	stack.address = ":3000"
+	stack.Address = ":3000"
 
 	// Route all requests for /goodbye to the Goodbye handler
 	routes := map[string]mango.App{"/goodbye(.*)": Goodbye}
