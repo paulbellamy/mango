@@ -62,7 +62,7 @@ Where:
     )
 
     func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawUrl)
+      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawURL)
       return 200, mango.Headers{}, mango.Body("Hello World!")
     }
 
