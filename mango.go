@@ -100,8 +100,13 @@ type Stack struct {
 	app        App
 }
 
-func (this *Stack) Version() []int {
-	return []int{0, 2}
+func Version() []int {
+	return []int{0, 2, 1}
+}
+
+func VersionString() string {
+	v := Version()
+	return fmt.Sprintf("%d.%02d.%02d", v[0], v[1], v[2])
 }
 
 func (this *Stack) Middleware(middleware ...Middleware) {
@@ -118,7 +123,7 @@ func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		env := make(map[string]interface{})
 		env["mango.request"] = &Request{r}
-		env["mango.version"] = this.Version()
+		env["mango.version"] = Version()
 
 		status, headers, body := compiled_app(env)
 

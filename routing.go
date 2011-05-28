@@ -2,15 +2,51 @@ package mango
 
 import (
 	"regexp"
+	"sort"
 )
 
+// Methods required by sort.Interface.
+type matcherArray []*regexp.Regexp
+
+func specificity(matcher *regexp.Regexp) int {
+	return len(matcher.String())
+}
+func (this matcherArray) Len() int {
+	return len(this)
+}
+func (this matcherArray) Less(i, j int) bool {
+	// The sign is reversed below so we sort the matchers in descending order
+	return specificity(this[i]) > specificity(this[j])
+}
+func (this matcherArray) Swap(i, j int) {
+	this[i], this[j] = this[j], this[i]
+}
+
 func Routing(routes map[string]App) Middleware {
+	matchers := matcherArray{}
+	handlers := []App{}
+
+	// Compile the matchers
+	for matcher, _ := range routes {
+		// compile the matchers
+		matchers = append([]*regexp.Regexp(matchers), regexp.MustCompile(matcher))
+	}
+
+	// sort 'em by descending length
+	sort.Sort(matchers)
+
+	// Attach the handlers to each matcher
+	for _, matcher := range matchers {
+		// Attach them to their handlers
+		handlers = append(handlers, routes[matcher.String()])
+	}
+
 	return func(env Env, app App) (Status, Headers, Body) {
 		path := []byte(env.Request().URL.Path)
-		for regex, stack := range routes {
-			if matched, err := regexp.Match(regex, path); matched && err == nil {
+		for i, matcher := range matchers {
+			if matcher.Match(path) {
 				// Matched a route return it
-				return stack(env)
+				return handlers[i](env)
 			}
 		}
 

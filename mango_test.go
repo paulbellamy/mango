@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 	"bytes"
+	"fmt"
 	"log"
 	"runtime"
 )
@@ -42,6 +43,8 @@ func routingBTestServer(env Env) (Status, Headers, Body) {
 
 func init() {
 	runtime.GOMAXPROCS(4)
+
+	fmt.Println("Testing Mango Version:", VersionString())
 
 	testRoutes := make(map[string]App)
 
