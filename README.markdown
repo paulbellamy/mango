@@ -58,6 +58,11 @@ Where:
   Usage: Static(directory string)
   Serves static files from the directory provided.
 
+* JSONP
+
+  Usage: JSONP
+  Provides JSONP support. If a request has a 'callback' parameter, and your application responds with a Content-Type of "application/json", the JSONP middleware will wrap the response in the callback function and set the Content-Type to "application/javascript".
+
 ## Example App
 
     package main
