@@ -31,26 +31,31 @@ Where:
 * mango.Headers is a map[string][]string of the response headers (similar to http.Header)
 * mango.Body is a string for the response body
 
+## Installation
+
+   $ goinstall github.com/paulbellamy/mango
+
+
 ## Available Modules
 
 * Sessions
 
-  Usage: Sessions(app_secret, cookie_name, cookie_domain string)
+  Usage: mango.Sessions(app_secret, cookie_name, cookie_domain string)
   Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
   
 * Logger
 
-  Usage: Logger(custom_logger \*log.Logger)
+  Usage: mango.Logger(custom_logger \*log.Logger)
   Provides a way to set a custom log.Logger object for the app. If this middleware is not provided Mango will set up a default logger to os.Stdout for the app to log to.
 
 * ShowErrors
 
-  Usage: ShowErrors(templateString string)
+  Usage: mango.ShowErrors(templateString string)
   Catch any panics thrown from the app, and display them in an HTML template. If templateString is "", a default template is used. Not recommended to use the default template in production as it could provide information helpful to attackers.
 
 * Routing
 
-  Usage: Routing(routes map[string]App)
+  Usage: mango.Routing(routes map[string]App)
   "routes" is of the form { "/path1(.\*)": sub-stack1, "/path2(.\*)": sub-stack2 }.  It lets us route different requests to different mango sub-stacks based on regexing the path.
 
 ## Example App
@@ -58,7 +63,7 @@ Where:
     package main
 
     import (
-      "mango"
+      "github.com/paulbellamy/mango"
     )
 
     func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
@@ -69,7 +74,7 @@ Where:
     func main() {
       stack := new(mango.Stack)
       stack.Address = ":3000"
-      stack.Middleware(ShowErrors(""))
+      stack.Middleware(mango.ShowErrors(""))
       stack.Run(Hello)
     }
 
