@@ -53,6 +53,11 @@ Where:
   Usage: Routing(routes map[string]App)
   "routes" is of the form { "/path1(.\*)": sub-stack1, "/path2(.\*)": sub-stack2 }.  It lets us route different requests to different mango sub-stacks based on regexing the path.
 
+* Static
+
+  Usage: Static(directory string)
+  Serves static files from the directory provided.
+
 ## Example App
 
     package main

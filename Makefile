@@ -9,6 +9,7 @@ GOFILES=\
 				show_errors.go\
 				sessions.go\
 				routing.go\
+				static.go\
 
 include $(GOROOT)/src/Make.pkg
 
