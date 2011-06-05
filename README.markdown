@@ -36,31 +36,37 @@ Where:
 * Sessions
 
   Usage: Sessions(app_secret, cookie_name, cookie_domain string)
+
   Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
   
 * Logger
 
   Usage: Logger(custom_logger \*log.Logger)
+
   Provides a way to set a custom log.Logger object for the app. If this middleware is not provided Mango will set up a default logger to os.Stdout for the app to log to.
 
 * ShowErrors
 
   Usage: ShowErrors(templateString string)
+
   Catch any panics thrown from the app, and display them in an HTML template. If templateString is "", a default template is used. Not recommended to use the default template in production as it could provide information helpful to attackers.
 
 * Routing
 
   Usage: Routing(routes map[string]App)
+
   "routes" is of the form { "/path1(.\*)": sub-stack1, "/path2(.\*)": sub-stack2 }.  It lets us route different requests to different mango sub-stacks based on regexing the path.
 
 * Static
 
   Usage: Static(directory string)
+
   Serves static files from the directory provided.
 
 * JSONP
 
   Usage: JSONP
+
   Provides JSONP support. If a request has a 'callback' parameter, and your application responds with a Content-Type of "application/json", the JSONP middleware will wrap the response in the callback function and set the Content-Type to "application/javascript".
 
 ## Example App
