@@ -9,10 +9,13 @@ GOFILES=\
 				show_errors.go\
 				sessions.go\
 				routing.go\
+				static.go\
+				jsonp.go\
 
 include $(GOROOT)/src/Make.pkg
 
 format:
 	${GOFMT} -w ${GOFILES}
 	${GOFMT} -w mango_test.go
+	${GOFMT} -w jsonp_test.go
 	${GOFMT} -w examples/*.go

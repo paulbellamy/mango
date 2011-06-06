@@ -4,10 +4,10 @@
 POTENTIAL MIDDLEWARE
 ====================
 
+* Cross-Origin Resource Sharing
 * Test module (to allow easy testing of apps)
 * Lint for validation (Enforce http spec)
-* Static-File/Directory serving
-* JSONP support
 * Caching support for drop-in HTTP Caching
 * Edge-Side Include support
 * Multi-part file upload handling
+  * provided via golang http package?

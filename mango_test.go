@@ -79,7 +79,7 @@ func init() {
 		Routing(fullStackTestRoutes))
 	testRoutes["/full_stack(.*)"] = fullStack.Compile(helloWorld)
 
-	testServer.Middleware(Routing(testRoutes))
+	testServer.Middleware(Static("./static"), Routing(testRoutes))
 	testServer.Address = "localhost:3000"
 	go testServer.Run(helloWorld)
 }
@@ -98,7 +98,7 @@ func TestHelloWorld(t *testing.T) {
 
 	body, _ := ioutil.ReadAll(response.Body)
 	if string(body) != "Hello World!" {
-		t.Error("Expected body:", body, "to equal: \"Hello World!\"")
+		t.Error("Expected body:", string(body), "to equal: \"Hello World!\"")
 	}
 }
 
@@ -231,6 +231,31 @@ func TestRouting(t *testing.T) {
 func BenchmarkRouting(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Get("http://localhost:3000/routing/123")
+	}
+}
+
+func TestStatic(t *testing.T) {
+	// Request against it
+	response, _, err := client.Get("http://localhost:3000/static.html")
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if response.StatusCode != 200 {
+		t.Error("Expected status to equal 200, got:", response.StatusCode)
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	expected := "<h1>I'm a static test file</h1>\n"
+	if string(body) != expected {
+		t.Error("Expected body:", string(body), "to equal: \"", expected, "\"")
+	}
+}
+
+func BenchmarkStatic(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		client.Get("http://localhost:3000/static.html")
 	}
 }
 
