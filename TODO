@@ -1,6 +1,5 @@
 * Better cookie handler
   * Domain/Expiry
-* JSONP should set/update Content-Length header
 
 POTENTIAL MIDDLEWARE
 ====================
