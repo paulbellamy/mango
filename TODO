@@ -4,6 +4,7 @@
 POTENTIAL MIDDLEWARE
 ====================
 
+* Cross-Origin Resource Sharing
 * Test module (to allow easy testing of apps)
 * Lint for validation (Enforce http spec)
 * Caching support for drop-in HTTP Caching
