@@ -3,7 +3,6 @@ package mango
 import (
 	"http"
 	"testing"
-	"fmt"
 	"runtime"
 )
 
@@ -13,8 +12,6 @@ func staticTestServer(env Env) (Status, Headers, Body) {
 
 func init() {
 	runtime.GOMAXPROCS(4)
-
-	fmt.Println("Testing Mango-JSONP Version:", VersionString())
 }
 
 func TestStaticSuccess(t *testing.T) {
