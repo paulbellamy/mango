@@ -33,14 +33,6 @@ func showErrorsTestServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{}, Body("Hello World!")
 }
 
-func routingATestServer(env Env) (Status, Headers, Body) {
-	return 200, Headers{}, Body("Server A")
-}
-
-func routingBTestServer(env Env) (Status, Headers, Body) {
-	return 200, Headers{}, Body("Server B")
-}
-
 func init() {
 	runtime.GOMAXPROCS(4)
 
@@ -63,13 +55,6 @@ func init() {
 	showErrorsStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
 	testRoutes["/show_errors"] = showErrorsStack.Compile(showErrorsTestServer)
 
-	routingStack := new(Stack)
-	routingTestRoutes := make(map[string]App)
-	routingTestRoutes["/routing/[0-9]+"] = routingATestServer
-	routingTestRoutes["/routing/[a-z]+"] = routingBTestServer
-	routingStack.Middleware(Routing(routingTestRoutes))
-	testRoutes["/routing(.*)"] = routingStack.Compile(helloWorld)
-
 	fullStack := new(Stack)
 	fullStackTestRoutes := make(map[string]App)
 	fullStackTestRoutes["/full_stack/[0-9]+"] = routingATestServer
@@ -79,14 +64,14 @@ func init() {
 		Routing(fullStackTestRoutes))
 	testRoutes["/full_stack(.*)"] = fullStack.Compile(helloWorld)
 
-	testServer.Middleware(Static("./static"), Routing(testRoutes))
+	testServer.Middleware(Routing(testRoutes))
 	testServer.Address = "localhost:3000"
 	go testServer.Run(helloWorld)
 }
 
 func TestHelloWorld(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/hello")
+	response, err := client.Get("http://localhost:3000/hello")
 
 	if err != nil {
 		t.Error(err)
@@ -110,7 +95,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 
 func TestLogger(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/logger")
+	response, err := client.Get("http://localhost:3000/logger")
 
 	if err != nil {
 		t.Error(err)
@@ -134,7 +119,7 @@ func BenchmarkLogger(b *testing.B) {
 
 func TestSessions(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/sessions")
+	response, err := client.Get("http://localhost:3000/sessions")
 
 	if err != nil {
 		t.Error(err)
@@ -169,7 +154,7 @@ func BenchmarkSessions(b *testing.B) {
 
 func TestShowErrors(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/show_errors")
+	response, err := client.Get("http://localhost:3000/show_errors")
 
 	if err != nil {
 		t.Error(err)
@@ -189,73 +174,6 @@ func TestShowErrors(t *testing.T) {
 func BenchmarkShowErrors(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Get("http://localhost:3000/show_errors")
-	}
-}
-
-func TestRouting(t *testing.T) {
-	// Request server a
-	response, _, err := client.Get("http://localhost:3000/routing/123")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if response.StatusCode != 200 {
-		t.Error("Expected status to equal 200, got:", response.StatusCode)
-	}
-
-	expected := "Server A"
-	body, _ := ioutil.ReadAll(response.Body)
-	if string(body) != expected {
-		t.Error("Expected response body to equal: \"", expected, "\" got: \"", string(body), "\"")
-	}
-
-	// Request server b
-	response, _, err = client.Get("http://localhost:3000/routing/abc")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if response.StatusCode != 200 {
-		t.Error("Expected status to equal 200, got:", response.StatusCode)
-	}
-
-	expected = "Server B"
-	body, _ = ioutil.ReadAll(response.Body)
-	if string(body) != expected {
-		t.Error("Expected response body to equal: \"", expected, "\" got: \"", string(body), "\"")
-	}
-}
-
-func BenchmarkRouting(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		client.Get("http://localhost:3000/routing/123")
-	}
-}
-
-func TestStatic(t *testing.T) {
-	// Request against it
-	response, _, err := client.Get("http://localhost:3000/static.html")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if response.StatusCode != 200 {
-		t.Error("Expected status to equal 200, got:", response.StatusCode)
-	}
-
-	body, _ := ioutil.ReadAll(response.Body)
-	expected := "<h1>I'm a static test file</h1>\n"
-	if string(body) != expected {
-		t.Error("Expected body:", string(body), "to equal: \"", expected, "\"")
-	}
-}
-
-func BenchmarkStatic(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		client.Get("http://localhost:3000/static.html")
 	}
 }
 
