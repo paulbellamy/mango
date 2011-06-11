@@ -86,7 +86,7 @@ func init() {
 
 func TestHelloWorld(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/hello")
+	response, err := client.Get("http://localhost:3000/hello")
 
 	if err != nil {
 		t.Error(err)
@@ -110,7 +110,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 
 func TestLogger(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/logger")
+	response, err := client.Get("http://localhost:3000/logger")
 
 	if err != nil {
 		t.Error(err)
@@ -134,7 +134,7 @@ func BenchmarkLogger(b *testing.B) {
 
 func TestSessions(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/sessions")
+	response, err := client.Get("http://localhost:3000/sessions")
 
 	if err != nil {
 		t.Error(err)
@@ -169,7 +169,7 @@ func BenchmarkSessions(b *testing.B) {
 
 func TestShowErrors(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/show_errors")
+	response, err := client.Get("http://localhost:3000/show_errors")
 
 	if err != nil {
 		t.Error(err)
@@ -194,7 +194,7 @@ func BenchmarkShowErrors(b *testing.B) {
 
 func TestRouting(t *testing.T) {
 	// Request server a
-	response, _, err := client.Get("http://localhost:3000/routing/123")
+	response, err := client.Get("http://localhost:3000/routing/123")
 
 	if err != nil {
 		t.Error(err)
@@ -211,7 +211,7 @@ func TestRouting(t *testing.T) {
 	}
 
 	// Request server b
-	response, _, err = client.Get("http://localhost:3000/routing/abc")
+	response, err = client.Get("http://localhost:3000/routing/abc")
 
 	if err != nil {
 		t.Error(err)
@@ -236,7 +236,7 @@ func BenchmarkRouting(b *testing.B) {
 
 func TestStatic(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/static.html")
+	response, err := client.Get("http://localhost:3000/static.html")
 
 	if err != nil {
 		t.Error(err)
