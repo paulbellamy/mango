@@ -1,15 +1,13 @@
 package mango
 
 import (
-	"http"
+	"http/httptest"
 	"io/ioutil"
 	"testing"
 	"fmt"
+	"http"
 	"runtime"
 )
-
-var testServer = Stack{}
-var client = http.Client{}
 
 func helloWorld(env Env) (Status, Headers, Body) {
 	return 200, Headers{}, Body("Hello World!")
@@ -19,19 +17,17 @@ func init() {
 	runtime.GOMAXPROCS(4)
 
 	fmt.Println("Testing Mango Version:", VersionString())
-
-	testRoutes := make(map[string]App)
-
-	testRoutes["/hello"] = new(Stack).Compile(helloWorld)
-
-	testServer.Middleware(Routing(testRoutes))
-	testServer.Address = "localhost:3000"
-	go testServer.Run(helloWorld)
 }
 
 func TestHelloWorld(t *testing.T) {
+	stack := new(Stack)
+	testServer := httptest.NewServer(stack.HandlerFunc(helloWorld))
+	defer testServer.Close()
+
+	var client = http.Client{}
+
 	// Request against it
-	response, err := client.Get("http://localhost:3000/hello")
+	response, err := client.Get(testServer.URL)
 
 	if err != nil {
 		t.Error(err)
@@ -48,7 +44,16 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func BenchmarkHelloWorld(b *testing.B) {
+	b.StopTimer()
+
+	stack := new(Stack)
+	testServer := httptest.NewServer(stack.HandlerFunc(helloWorld))
+	defer testServer.Close()
+	client := http.Client{}
+	address := testServer.URL
+
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		client.Get("http://localhost:3000/hello")
+		client.Get(address)
 	}
 }
