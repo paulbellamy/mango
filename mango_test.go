@@ -71,7 +71,7 @@ func init() {
 
 func TestHelloWorld(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/hello")
+	response, err := client.Get("http://localhost:3000/hello")
 
 	if err != nil {
 		t.Error(err)
@@ -95,7 +95,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 
 func TestLogger(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/logger")
+	response, err := client.Get("http://localhost:3000/logger")
 
 	if err != nil {
 		t.Error(err)
@@ -119,7 +119,7 @@ func BenchmarkLogger(b *testing.B) {
 
 func TestSessions(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/sessions")
+	response, err := client.Get("http://localhost:3000/sessions")
 
 	if err != nil {
 		t.Error(err)
@@ -154,7 +154,7 @@ func BenchmarkSessions(b *testing.B) {
 
 func TestShowErrors(t *testing.T) {
 	// Request against it
-	response, _, err := client.Get("http://localhost:3000/show_errors")
+	response, err := client.Get("http://localhost:3000/show_errors")
 
 	if err != nil {
 		t.Error(err)
