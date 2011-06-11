@@ -23,11 +23,6 @@ func loggerTestServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{}, Body("Hello World!")
 }
 
-func sessionsTestServer(env Env) (Status, Headers, Body) {
-	env.Session()["test_attribute"] = "Never gonna give you up"
-	return 200, Headers{}, Body("Hello World!")
-}
-
 func showErrorsTestServer(env Env) (Status, Headers, Body) {
 	panic("foo!")
 	return 200, Headers{}, Body("Hello World!")
@@ -46,10 +41,6 @@ func init() {
 	custom_logger := log.New(loggerBuffer, "prefixed:", 0)
 	loggerStack.Middleware(Logger(custom_logger))
 	testRoutes["/logger"] = loggerStack.Compile(loggerTestServer)
-
-	sessionsStack := new(Stack)
-	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
-	testRoutes["/sessions"] = sessionsStack.Compile(sessionsTestServer)
 
 	showErrorsStack := new(Stack)
 	showErrorsStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
@@ -114,41 +105,6 @@ func TestLogger(t *testing.T) {
 func BenchmarkLogger(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		client.Get("http://localhost:3000/logger")
-	}
-}
-
-func TestSessions(t *testing.T) {
-	// Request against it
-	response, err := client.Get("http://localhost:3000/sessions")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if response.StatusCode != 200 {
-		t.Error("Expected status to equal 200, got:", response.StatusCode)
-	}
-
-	expected_name := "my_key"
-	if response.SetCookie[0].Name != expected_name {
-		t.Error("Expected Set-Cookie name to equal: \"", expected_name, "\" got: \"", response.SetCookie[0].Name, "\"")
-	}
-
-	// base 64 encoded, hmac-hashed, and gob encoded stuff
-	expected_value := "Dv+BBAEC/4IAAQwBEAAANf+CAAEOdGVzdF9hdHRyaWJ1dGUGc3RyaW5nDBkAF05ldmVyIGdvbm5hIGdpdmUgeW91IHVw--bdHyJ5lvPpk6EoZiSSSiHKZtQHk="
-	if response.SetCookie[0].Value != expected_value {
-		t.Error("Expected Set-Cookie value to equal: \"", expected_value, "\" got: \"", response.SetCookie[0].Value, "\"")
-	}
-
-	expected_domain := ".my.domain.com"
-	if response.SetCookie[0].Domain != expected_domain {
-		t.Error("Expected Set-Cookie domain to equal: \"", expected_domain, "\" got: \"", response.SetCookie[0].Domain, "\"")
-	}
-}
-
-func BenchmarkSessions(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		client.Get("http://localhost:3000/sessions")
 	}
 }
 
