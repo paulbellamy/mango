@@ -49,11 +49,11 @@ func BenchmarkHelloWorld(b *testing.B) {
 	stack := new(Stack)
 	testServer := httptest.NewServer(stack.HandlerFunc(helloWorld))
 	defer testServer.Close()
-	client := http.Client{}
 	address := testServer.URL
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		client.Get(address)
+		http.Get(address)
 	}
+	b.StopTimer()
 }

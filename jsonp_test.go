@@ -2,6 +2,7 @@ package mango
 
 import (
 	"http"
+	"http/httptest"
 	"testing"
 	"runtime"
 )
@@ -144,4 +145,20 @@ func TestJSONPInvalidCallback(t *testing.T) {
 	if string(body) != expected {
 		t.Error("Expected body:", string(body), "to equal:", expected)
 	}
+}
+
+func BenchmarkJSONP(b *testing.B) {
+	b.StopTimer()
+
+	stack := new(Stack)
+	stack.Middleware(JSONP)
+	testServer := httptest.NewServer(stack.HandlerFunc(jsonServer))
+	defer testServer.Close()
+	address := testServer.URL
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		http.Get(address)
+	}
+	b.StopTimer()
 }

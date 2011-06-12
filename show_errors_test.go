@@ -2,6 +2,7 @@ package mango
 
 import (
 	"http"
+	"http/httptest"
 	"testing"
 	"runtime"
 )
@@ -37,4 +38,20 @@ func TestShowErrors(t *testing.T) {
 	if string(body) != expected {
 		t.Error("Expected response body to equal: \"", expected, "\" got: \"", string(body), "\"")
 	}
+}
+
+func BenchmarkShowErrors(b *testing.B) {
+	b.StopTimer()
+
+	stack := new(Stack)
+	stack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
+	testServer := httptest.NewServer(stack.HandlerFunc(showErrorsTestServer))
+	defer testServer.Close()
+	address := testServer.URL
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		http.Get(address)
+	}
+	b.StopTimer()
 }

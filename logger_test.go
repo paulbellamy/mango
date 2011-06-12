@@ -3,6 +3,7 @@ package mango
 import (
 	"bytes"
 	"http"
+	"http/httptest"
 	"log"
 	"testing"
 	"runtime"
@@ -42,4 +43,21 @@ func TestLogger(t *testing.T) {
 	if loggerBuffer.String() != expected {
 		t.Error("Expected logger to print: \"", expected, "\" got: \"", loggerBuffer.String(), "\"")
 	}
+}
+
+func BenchmarkLogger(b *testing.B) {
+	b.StopTimer()
+
+	stack := new(Stack)
+	custom_logger := log.New(loggerBuffer, "prefixed:", 0)
+	stack.Middleware(Logger(custom_logger))
+	testServer := httptest.NewServer(stack.HandlerFunc(loggerTestServer))
+	defer testServer.Close()
+	address := testServer.URL
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		http.Get(address)
+	}
+	b.StopTimer()
 }
