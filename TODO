@@ -1,9 +1,7 @@
 * Better cookie handler
   * Domain/Expiry
 * Clean up/Flesh out tests more
-  * Use http/httptest for full-stack testing
   * Better benchmarking
-    * Per-module
     * End-to-End
 
 POTENTIAL MIDDLEWARE

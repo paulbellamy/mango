@@ -2,7 +2,6 @@ package mango
 
 import (
 	"http"
-	"http/httptest"
 	"testing"
 	"runtime"
 )
@@ -150,15 +149,15 @@ func TestJSONPInvalidCallback(t *testing.T) {
 func BenchmarkJSONP(b *testing.B) {
 	b.StopTimer()
 
-	stack := new(Stack)
-	stack.Middleware(JSONP)
-	testServer := httptest.NewServer(stack.HandlerFunc(jsonServer))
-	defer testServer.Close()
-	address := testServer.URL
+	jsonpStack := new(Stack)
+	jsonpStack.Middleware(JSONP)
+	jsonpApp := jsonpStack.Compile(jsonServer)
+
+	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		http.Get(address)
+		jsonpApp(Env{"mango.request": &Request{request}})
 	}
 	b.StopTimer()
 }

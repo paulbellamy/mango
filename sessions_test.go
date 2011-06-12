@@ -2,7 +2,6 @@ package mango
 
 import (
 	"http"
-	"http/httptest"
 	"runtime"
 	"testing"
 )
@@ -45,15 +44,15 @@ func TestSessions(t *testing.T) {
 func BenchmarkSessions(b *testing.B) {
 	b.StopTimer()
 
-	stack := new(Stack)
-	stack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
-	testServer := httptest.NewServer(stack.HandlerFunc(sessionsTestServer))
-	defer testServer.Close()
-	address := testServer.URL
+	sessionsStack := new(Stack)
+	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
+	sessionsApp := sessionsStack.Compile(sessionsTestServer)
+
+	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		http.Get(address)
+		sessionsApp(Env{"mango.request": &Request{request}})
 	}
 	b.StopTimer()
 }

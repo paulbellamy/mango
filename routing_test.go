@@ -2,7 +2,6 @@ package mango
 
 import (
 	"http"
-	"http/httptest"
 	"testing"
 	"runtime"
 )
@@ -97,18 +96,18 @@ func TestRoutingFailure(t *testing.T) {
 func BenchmarkRouting(b *testing.B) {
 	b.StopTimer()
 
-	stack := new(Stack)
+	routingStack := new(Stack)
 	routes := make(map[string]App)
 	routes["/a"] = routingATestServer
 	routes["/b"] = routingBTestServer
-	stack.Middleware(Routing(routes))
-	testServer := httptest.NewServer(stack.HandlerFunc(routingTestServer))
-	defer testServer.Close()
-	address := testServer.URL
+	routingStack.Middleware(Routing(routes))
+	routingApp := routingStack.Compile(routingTestServer)
+
+	request, _ := http.NewRequest("GET", "http://localhost:3000/a", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		http.Get(address)
+		routingApp(Env{"mango.request": &Request{request}})
 	}
 	b.StopTimer()
 }

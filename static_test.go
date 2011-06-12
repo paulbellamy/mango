@@ -2,7 +2,6 @@ package mango
 
 import (
 	"http"
-	"http/httptest"
 	"testing"
 	"runtime"
 )
@@ -66,15 +65,15 @@ func TestStaticFail(t *testing.T) {
 func BenchmarkStatic(b *testing.B) {
 	b.StopTimer()
 
-	stack := new(Stack)
-	stack.Middleware(Static("./static"))
-	testServer := httptest.NewServer(stack.HandlerFunc(staticTestServer))
-	defer testServer.Close()
-	address := testServer.URL
+	staticStack := new(Stack)
+	staticStack.Middleware(Static("./static"))
+	staticApp := staticStack.Compile(staticTestServer)
+
+	request, _ := http.NewRequest("GET", "http://localhost:3000/static.html", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		http.Get(address)
+		staticApp(Env{"mango.request": &Request{request}})
 	}
 	b.StopTimer()
 }
