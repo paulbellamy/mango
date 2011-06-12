@@ -9,6 +9,7 @@
 POTENTIAL MIDDLEWARE
 ====================
 
+* Basic-Auth
 * Cross-Origin Resource Sharing
 * Test module (to allow easy testing of apps)
 * Lint for validation (Enforce http spec)
