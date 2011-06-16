@@ -6,11 +6,13 @@ import (
 	"strings"
 )
 
+var jsonp_valid_callback_matcher *regexp.Regexp = regexp.MustCompile("^[a-zA-Z_$][a-zA-Z_0-9$]*([.]?[a-zA-Z_$][a-zA-Z_0-9$]*)*$")
+
 func JSONP(env Env, app App) (Status, Headers, Body) {
 	callback := env.Request().FormValue("callback")
 
 	if callback != "" {
-		if matched, err := regexp.MatchString("^[a-zA-Z_$][a-zA-Z_0-9$]*([.]?[a-zA-Z_$][a-zA-Z_0-9$]*)*$", callback); !matched || err != nil {
+		if !jsonp_valid_callback_matcher.MatchString(callback) {
 			return 400, Headers{"Content-Type": []string{"text/plain"}, "Content-Length": []string{"11"}}, "Bad Request"
 		}
 	}

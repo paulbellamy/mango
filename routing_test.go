@@ -92,3 +92,22 @@ func TestRoutingFailure(t *testing.T) {
 		t.Error("Expected body:", string(body), "to equal:", expected)
 	}
 }
+
+func BenchmarkRouting(b *testing.B) {
+	b.StopTimer()
+
+	routingStack := new(Stack)
+	routes := make(map[string]App)
+	routes["/a"] = routingATestServer
+	routes["/b"] = routingBTestServer
+	routingStack.Middleware(Routing(routes))
+	routingApp := routingStack.Compile(routingTestServer)
+
+	request, _ := http.NewRequest("GET", "http://localhost:3000/a", nil)
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		routingApp(Env{"mango.request": &Request{request}})
+	}
+	b.StopTimer()
+}

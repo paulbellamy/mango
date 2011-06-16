@@ -29,9 +29,18 @@ func decodeGob(value string) (result map[string]interface{}) {
 	return result
 }
 
+// Due to a bug in golang where when using
+// base64.URLEncoding padding is still added
+// (it shouldn't be), we have to strip and add
+// it ourselves.
+func pad64(value string) (result string) {
+	padding := strings.Repeat("=", len(value)%4)
+	return strings.Join([]string{value, padding}, "")
+}
+
 func decode64(value string) (result string) {
-	buffer := bytes.NewBufferString(value)
-	encoder := base64.NewDecoder(base64.StdEncoding, buffer)
+	buffer := bytes.NewBufferString(pad64(value))
+	encoder := base64.NewDecoder(base64.URLEncoding, buffer)
 	decoded, _ := ioutil.ReadAll(encoder)
 	return string(decoded)
 }
@@ -61,12 +70,20 @@ func encodeGob(value interface{}) (result string) {
 	return buffer.String()
 }
 
+// Due to a bug in golang where when using
+// base64.URLEncoding padding is still added
+// (it shouldn't be), we have to strip and add
+// it ourselves.
+func dePad64(value string) (result string) {
+	return strings.TrimRight(value, "=")
+}
+
 func encode64(value string) (result string) {
 	buffer := &bytes.Buffer{}
-	encoder := base64.NewEncoder(base64.StdEncoding, buffer)
+	encoder := base64.NewEncoder(base64.URLEncoding, buffer)
 	encoder.Write([]byte(value))
 	encoder.Close()
-	return buffer.String()
+	return dePad64(buffer.String())
 }
 
 func encodeCookie(value map[string]interface{}, secret string) (cookie string) {
