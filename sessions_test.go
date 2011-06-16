@@ -35,7 +35,7 @@ func TestSessions(t *testing.T) {
 
 	// base 64 encoded, hmac-hashed, and gob encoded stuff
 	cookie := headers.Get("Set-Cookie")
-	expected_cookie := "my_key=Dv+BBAEC/4IAAQwBEAAANf+CAAEOdGVzdF9hdHRyaWJ1dGUGc3RyaW5nDBkAF05ldmVyIGdvbm5hIGdpdmUgeW91IHVw--bdHyJ5lvPpk6EoZiSSSiHKZtQHk=; Domain=.my.domain.com;"
+	expected_cookie := "my_key=Dv-BBAEC_4IAAQwBEAAANf-CAAEOdGVzdF9hdHRyaWJ1dGUGc3RyaW5nDBkAF05ldmVyIGdvbm5hIGdpdmUgeW91IHVw--bdHyJ5lvPpk6EoZiSSSiHKZtQHk; Domain=.my.domain.com;"
 	if cookie != expected_cookie {
 		t.Error("Expected Set-Cookie to equal: \"", expected_cookie, "\" got: \"", cookie, "\"")
 	}
