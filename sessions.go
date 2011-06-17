@@ -93,11 +93,9 @@ func encodeCookie(value map[string]interface{}, secret string) (cookie string) {
 }
 
 func prepareSession(env Env, key, secret string) {
-	for _, value := range env.Request().Cookie {
-		if value.Name == key {
-			env["mango.session"] = decodeCookie(value.Value, secret)
-			return
-		}
+	if cookie, err := env.Request().Cookie(key); err == nil {
+		env["mango.session"] = decodeCookie(cookie.Value, secret)
+		return
 	}
 
 	// Didn't find a session to decode
