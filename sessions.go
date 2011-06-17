@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"gob"
+	"http"
 	"strings"
 )
 
@@ -64,7 +65,7 @@ func decodeCookie(value, secret string) (cookie map[string]interface{}) {
 }
 
 func encodeGob(value interface{}) (result string) {
-	buffer := &bytes.Buffer{}
+	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
 	encoder.Encode(value)
 	return buffer.String()
@@ -79,7 +80,7 @@ func dePad64(value string) (result string) {
 }
 
 func encode64(value string) (result string) {
-	buffer := &bytes.Buffer{}
+	buffer := new(bytes.Buffer)
 	encoder := base64.NewEncoder(base64.URLEncoding, buffer)
 	encoder.Write([]byte(value))
 	encoder.Close()
@@ -103,7 +104,11 @@ func prepareSession(env Env, key, secret string) {
 }
 
 func commitSession(headers Headers, env Env, key, secret, domain string) {
-	headers.Add("Set-Cookie", fmt.Sprintf("%s=%s; Domain=%s;", key, encodeCookie(env["mango.session"].(map[string]interface{}), secret), domain))
+	cookie := new(http.Cookie)
+	cookie.Name = key
+	cookie.Value = encodeCookie(env["mango.session"].(map[string]interface{}), secret)
+	cookie.Domain = domain
+	headers.Add("Set-Cookie", cookie.String())
 }
 
 func Sessions(secret, key, domain string) Middleware {

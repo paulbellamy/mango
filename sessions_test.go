@@ -3,19 +3,38 @@ package mango
 import (
 	"http"
 	"runtime"
+	"strings"
 	"testing"
 )
-
-func sessionsTestServer(env Env) (Status, Headers, Body) {
-	env.Session()["test_attribute"] = "Never gonna give you up"
-	return 200, Headers{}, Body("Hello World!")
-}
 
 func init() {
 	runtime.GOMAXPROCS(4)
 }
 
+func TestSessionEncodingDecoding(t *testing.T) {
+	cookie := map[string]interface{}{"value": "foo"}
+	secret := "secret"
+	result := decodeCookie(encodeCookie(cookie, secret), secret)
+
+	if len(result) != len(cookie) {
+		t.Error("Expected cookie to equal:", cookie, "got:", result)
+	}
+
+	if result["value"] != cookie["value"] {
+		t.Error("Expected cookie[\"value\"] to equal:", cookie["value"], "got:", result["value"])
+	}
+}
+
 func TestSessions(t *testing.T) {
+	sessionsTestServer := func(env Env) (Status, Headers, Body) {
+		counter := env.Session()["counter"].(float64)
+		if counter != 1 {
+			t.Error("Expected session[\"counter\"] to equal:", 1, "got:", counter)
+		}
+		env.Session()["counter"] = counter + 1
+		return 200, Headers{}, Body("Hello World!")
+	}
+
 	// Compile the stack
 	sessionsStack := new(Stack)
 	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
@@ -23,6 +42,11 @@ func TestSessions(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+	initial_cookie := new(http.Cookie)
+	initial_cookie.Name = "my_key"
+	initial_cookie.Value = encodeCookie(map[string]interface{}{"counter": 1}, "my_secret")
+	initial_cookie.Domain = ".my.domain.com"
+	request.AddCookie(initial_cookie)
 	status, headers, _ := sessionsApp(Env{"mango.request": &Request{request}})
 
 	if err != nil {
@@ -35,14 +59,33 @@ func TestSessions(t *testing.T) {
 
 	// base 64 encoded, hmac-hashed, and gob encoded stuff
 	cookie := headers.Get("Set-Cookie")
-	expected_cookie := "my_key=Dv-BBAEC_4IAAQwBEAAANf-CAAEOdGVzdF9hdHRyaWJ1dGUGc3RyaW5nDBkAF05ldmVyIGdvbm5hIGdpdmUgeW91IHVw--bdHyJ5lvPpk6EoZiSSSiHKZtQHk; Domain=.my.domain.com;"
-	if cookie != expected_cookie {
-		t.Error("Expected Set-Cookie to equal: \"", expected_cookie, "\" got: \"", cookie, "\"")
+	if cookie == "" {
+		t.Error("Expected the Set-Cookie header to be set")
+	}
+
+	unparsed := strings.Split(strings.Split(cookie, "=", 2)[1], ";", 2)[0]
+	value := decodeCookie(unparsed, "my_secret")
+	expected_value := map[string]interface{}{"counter": float64(2)}
+	if len(value) != len(expected_value) {
+		t.Error("Expected cookie to equal:", expected_value, "got:", value)
+	}
+
+	if value["counter"].(float64) != expected_value["counter"].(float64) {
+		t.Error("Expected cookie[\"counter\"] to equal:", expected_value["counter"], "got:", value["counter"])
+	}
+
+	if !strings.Contains(headers.Get("Set-Cookie"), "; Domain=.my.domain.com") {
+		t.Error("Expected cookie ", headers.Get("Set-Cookie"), " to contain: '; Domain=.my.domain.com'")
 	}
 }
 
 func BenchmarkSessions(b *testing.B) {
 	b.StopTimer()
+
+	sessionsTestServer := func(env Env) (Status, Headers, Body) {
+		env.Session()["counter"] = env.Session()["counter"].(float64) + 1
+		return 200, Headers{}, Body("Hello World!")
+	}
 
 	sessionsStack := new(Stack)
 	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
