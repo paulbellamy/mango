@@ -27,7 +27,7 @@ func TestSessionEncodingDecoding(t *testing.T) {
 
 func TestSessions(t *testing.T) {
 	sessionsTestServer := func(env Env) (Status, Headers, Body) {
-		counter := env.Session()["counter"].(float64)
+		counter := env.Session()["counter"].(int)
 		if counter != 1 {
 			t.Error("Expected session[\"counter\"] to equal:", 1, "got:", counter)
 		}
@@ -65,12 +65,12 @@ func TestSessions(t *testing.T) {
 
 	unparsed := strings.Split(strings.Split(cookie, "=", 2)[1], ";", 2)[0]
 	value := decodeCookie(unparsed, "my_secret")
-	expected_value := map[string]interface{}{"counter": float64(2)}
+	expected_value := map[string]interface{}{"counter": int(2)}
 	if len(value) != len(expected_value) {
 		t.Error("Expected cookie to equal:", expected_value, "got:", value)
 	}
 
-	if value["counter"].(float64) != expected_value["counter"].(float64) {
+	if value["counter"].(int) != expected_value["counter"].(int) {
 		t.Error("Expected cookie[\"counter\"] to equal:", expected_value["counter"], "got:", value["counter"])
 	}
 
@@ -83,7 +83,7 @@ func BenchmarkSessions(b *testing.B) {
 	b.StopTimer()
 
 	sessionsTestServer := func(env Env) (Status, Headers, Body) {
-		env.Session()["counter"] = env.Session()["counter"].(float64) + 1
+		env.Session()["counter"] = env.Session()["counter"].(int) + 1
 		return 200, Headers{}, Body("Hello World!")
 	}
 
