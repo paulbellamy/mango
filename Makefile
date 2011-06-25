@@ -11,6 +11,7 @@ GOFILES=\
 				routing.go\
 				static.go\
 				jsonp.go\
+				mime.go\
 
 include $(GOROOT)/src/Make.pkg
 
