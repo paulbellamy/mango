@@ -28,7 +28,8 @@ func Static(directory string) Middleware {
 		file := path.Join(directory, env.Request().URL.Path)
 		if fileExists(file) && (env.Request().Method == "GET" || env.Request().Method == "HEAD") {
 			if body, err := readFile(file); err == nil {
-				return 200, Headers{}, Body(body)
+				mime_type := []string{MimeType(path.Ext(file), "application/octet-stream")}
+				return 200, Headers{"Content-Type": mime_type}, Body(body)
 			} else {
 				panic(err)
 			}
