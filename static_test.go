@@ -22,7 +22,7 @@ func TestStaticSuccess(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/static.html", nil)
-	status, _, body := staticApp(Env{"mango.request": &Request{request}})
+	status, headers, body := staticApp(Env{"mango.request": &Request{request}})
 
 	if err != nil {
 		t.Error(err)
@@ -35,6 +35,12 @@ func TestStaticSuccess(t *testing.T) {
 	expected := "<h1>I'm a static test file</h1>\n"
 	if string(body) != expected {
 		t.Error("Expected body:", string(body), "to equal:", expected)
+	}
+
+	expected = "text/html"
+	got := headers.Get("Content-Type")
+	if got != expected {
+		t.Error("Expected Content-Type:", got, "to equal:", expected)
 	}
 }
 
