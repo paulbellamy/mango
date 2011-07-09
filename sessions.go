@@ -49,7 +49,7 @@ func decode64(value string) (result string) {
 func decodeCookie(value, secret string) (cookie map[string]interface{}) {
 	cookie = make(map[string]interface{})
 
-	split := strings.Split(string(value), "--", 2)
+	split := strings.Split(string(value), "--")
 
 	if len(split) < 2 {
 		return cookie

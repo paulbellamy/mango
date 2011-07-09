@@ -63,7 +63,7 @@ func TestSessions(t *testing.T) {
 		t.Error("Expected the Set-Cookie header to be set")
 	}
 
-	unparsed := strings.Split(strings.Split(cookie, "=", 2)[1], ";", 2)[0]
+	unparsed := strings.Split(strings.Split(cookie, "=")[1], ";")[0]
 	value := decodeCookie(unparsed, "my_secret")
 	expected_value := map[string]interface{}{"counter": int(2)}
 	if len(value) != len(expected_value) {
