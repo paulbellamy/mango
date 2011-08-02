@@ -173,7 +173,7 @@ func BenchmarkNonJSONP(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-    nonJsonpApp(Env{"mango.request": &Request{request}})
+		nonJsonpApp(Env{"mango.request": &Request{request}})
 	}
 	b.StopTimer()
 }
