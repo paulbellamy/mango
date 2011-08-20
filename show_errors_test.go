@@ -18,7 +18,7 @@ func init() {
 func TestShowErrors(t *testing.T) {
 	// Compile the stack
 	showErrorsStack := new(Stack)
-	showErrorsStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
+	showErrorsStack.Middleware(ShowErrors("<html><body>{{.Error|html}}</body></html>"))
 	showErrorsApp := showErrorsStack.Compile(showErrorsTestServer)
 
 	// Request against it

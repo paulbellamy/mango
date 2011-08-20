@@ -11,14 +11,14 @@ func ShowErrors(templateString string) Middleware {
       <html>
       <body>
         <p>
-          {Error|html}
+          {{.Error|html}}
         </p>
       </body>
       </html>
     `
 	}
 
-	errorTemplate := template.MustParse(templateString, nil)
+	errorTemplate := template.Must(template.New("error").Parse(templateString))
 
 	return func(env Env, app App) (status Status, headers Headers, body Body) {
 		defer func() {
