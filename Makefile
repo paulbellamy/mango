@@ -12,6 +12,7 @@ GOFILES=\
 				static.go\
 				jsonp.go\
 				mime.go\
+				redirect.go\
 
 include $(GOROOT)/src/Make.pkg
 
