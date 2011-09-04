@@ -24,7 +24,7 @@ func ShowErrors(templateString string) Middleware {
 		defer func() {
 			if err := recover(); err != nil {
 				buffer := bytes.NewBufferString("")
-				errorTemplate.Execute(buffer, struct{ Error string }{err.(string)})
+				errorTemplate.Execute(buffer, struct{ Error string }{fmt.Sprintf("%s", err)})
 				status = 500
 				headers = Headers{}
 				body = Body(buffer.String())
