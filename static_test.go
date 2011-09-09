@@ -1,7 +1,9 @@
 package mango
 
 import (
+	"bytes"
 	"http"
+	"io/ioutil"
 	"testing"
 	"runtime"
 )
@@ -65,6 +67,34 @@ func TestStaticFail(t *testing.T) {
 	expected := "<h1>Hello World!</h1>"
 	if string(body) != expected {
 		t.Error("Expected body:", string(body), "to equal:", expected)
+	}
+}
+
+func TestStaticBinaryFile(t *testing.T) {
+	// Compile the stack
+	staticStack := new(Stack)
+	staticStack.Middleware(Static("./static"))
+	staticApp := staticStack.Compile(staticTestServer)
+
+	// Request against it
+	request, err := http.NewRequest("GET", "http://localhost:3000/binary_file.png", nil)
+	status, _, body := staticApp(Env{"mango.request": &Request{request}})
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if status != 200 {
+		t.Error("Expected status to equal 200, got:", status)
+	}
+
+	expected, err := ioutil.ReadFile("./static/binary_file.png")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Compare([]byte(body), []byte(expected)) != 0 {
+		t.Error("Expected body to equal ./static/binary_file.png")
 	}
 }
 

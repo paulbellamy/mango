@@ -133,7 +133,7 @@ func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
 			}
 		}
 		w.WriteHeader(int(status))
-		fmt.Fprintf(w, string(body))
+		w.Write([]byte(body))
 	}
 }
 
