@@ -120,7 +120,7 @@ An extremely basic middleware package is simply a function:
 
     func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
       // Call our upstream app
-      status, headers, body := app.Call(env)
+      status, headers, body := app(env)
 
       // If we got an error
       if status == 500 {
