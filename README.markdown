@@ -181,7 +181,7 @@ To use our middleware we would do:
 
       // Initialize our cats middleware with our list of cat_images
       cat_images := []string{"ceiling_cat.jpg", "itteh_bitteh_kittehs.jpg", "monorail_cat.jpg"}
-      cats_middleware = Cats(cat_images)
+      cats_middleware := Cats(cat_images)
 
       stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
 

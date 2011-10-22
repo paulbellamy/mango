@@ -1,16 +1,16 @@
 include $(GOROOT)/src/Make.inc
 
-BINS=hello logger session routing
+BINS=hello logger session routing cats
 LIBS=cats_middleware.a silence_middleware.a
 
-all: $(BINS) $(LIBS)
+all: $(LIBS) $(BINS)
 
 clean:
 	rm -rf *.[68] $(BINS)
 
 %: %.go
-	$(GC) $*.go
-	$(LD) -o $@ $*.$O
+	$(GC) -I _obj $*.go
+	$(LD) -L _obj -o $@ $*.$O
 
 %.a: %.go
 	$(GC) $*.go
