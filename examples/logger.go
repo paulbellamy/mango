@@ -2,6 +2,8 @@ package main
 
 import (
 	"mango"
+	"log"
+	"os"
 )
 
 func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
