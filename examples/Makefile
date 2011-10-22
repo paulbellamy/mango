@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-BINS=hello logger session routing cats
+BINS=hello logger session routing cats silence
 LIBS=cats_middleware.a silence_middleware.a
 
 all: $(LIBS) $(BINS)
