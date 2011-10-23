@@ -1,3 +1,4 @@
+// Mango is a modular web-application framework for Go, inspired by Rack and PEP333.
 package mango
 
 import (
