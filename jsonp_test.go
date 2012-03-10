@@ -3,7 +3,6 @@ package mango
 import (
 	"net/http"
 	"testing"
-	"runtime"
 )
 
 func jsonServer(env Env) (Status, Headers, Body) {
@@ -12,10 +11,6 @@ func jsonServer(env Env) (Status, Headers, Body) {
 
 func nonJsonServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{"Content-Type": []string{"text/html"}}, Body("<h1>Hello World!</h1>")
-}
-
-func init() {
-	runtime.GOMAXPROCS(4)
 }
 
 func TestJSONPSuccess(t *testing.T) {

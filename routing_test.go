@@ -3,7 +3,6 @@ package mango
 import (
 	"net/http"
 	"testing"
-	"runtime"
 )
 
 func routingTestServer(env Env) (Status, Headers, Body) {
@@ -16,10 +15,6 @@ func routingATestServer(env Env) (Status, Headers, Body) {
 
 func routingBTestServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{}, Body("Server B")
-}
-
-func init() {
-	runtime.GOMAXPROCS(4)
 }
 
 func TestRoutingSuccess(t *testing.T) {

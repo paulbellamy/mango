@@ -6,7 +6,6 @@ import (
 	"testing"
 	"fmt"
 	"net/http"
-	"runtime"
 )
 
 func helloWorld(env Env) (Status, Headers, Body) {
@@ -14,8 +13,6 @@ func helloWorld(env Env) (Status, Headers, Body) {
 }
 
 func init() {
-	runtime.GOMAXPROCS(4)
-
 	fmt.Println("Testing Mango Version:", VersionString())
 }
 

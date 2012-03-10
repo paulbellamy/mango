@@ -2,14 +2,9 @@ package mango
 
 import (
 	"net/http"
-	"runtime"
 	"strings"
 	"testing"
 )
-
-func init() {
-	runtime.GOMAXPROCS(4)
-}
 
 func TestSessionEncodingDecoding(t *testing.T) {
 	cookie := map[string]interface{}{"value": "foo"}

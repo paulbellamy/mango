@@ -5,15 +5,10 @@ import (
 	"net/http"
 	"io/ioutil"
 	"testing"
-	"runtime"
 )
 
 func staticTestServer(env Env) (Status, Headers, Body) {
 	return 200, Headers{"Content-Type": []string{"text/html"}}, Body("<h1>Hello World!</h1>")
-}
-
-func init() {
-	runtime.GOMAXPROCS(4)
 }
 
 func TestStaticSuccess(t *testing.T) {

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"log"
 	"testing"
-	"runtime"
 )
 
 var loggerBuffer = &bytes.Buffer{}
@@ -13,10 +12,6 @@ var loggerBuffer = &bytes.Buffer{}
 func loggerTestServer(env Env) (Status, Headers, Body) {
 	env.Logger().Println("Never gonna give you up")
 	return 200, Headers{}, Body("Hello World!")
-}
-
-func init() {
-	runtime.GOMAXPROCS(4)
 }
 
 func TestLogger(t *testing.T) {
