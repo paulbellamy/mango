@@ -2,7 +2,7 @@ package mango
 
 import (
 	"bytes"
-	"http"
+	"net/http"
 	"io/ioutil"
 	"testing"
 	"runtime"

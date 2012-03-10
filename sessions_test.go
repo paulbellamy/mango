@@ -1,7 +1,7 @@
 package mango
 
 import (
-	"http"
+	"net/http"
 	"runtime"
 	"strings"
 	"testing"

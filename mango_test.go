@@ -1,11 +1,11 @@
 package mango
 
 import (
-	"http/httptest"
+	"net/http/httptest"
 	"io/ioutil"
 	"testing"
 	"fmt"
-	"http"
+	"net/http"
 	"runtime"
 )
 

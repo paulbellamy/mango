@@ -3,7 +3,7 @@ package mango
 import (
 	"bytes"
 	"fmt"
-	"template"
+	"html/template"
 )
 
 func ShowErrors(templateString string) Middleware {

@@ -6,18 +6,22 @@ import (
 	"os"
 )
 
+func fileIsRegular(fi os.FileInfo) bool {
+  return fi.Mode() & (os.ModeDir | os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice) == 0
+}
+
 func fileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if err != nil {
 		return false
-	} else if !info.IsRegular() {
-		return false
-	}
+	} else if !fileIsRegular(info) {
+    return false
+  }
 
 	return true
 }
 
-func readFile(filename string) (string, os.Error) {
+func readFile(filename string) (string, error) {
 	body, err := ioutil.ReadFile(filename)
 	return string(body), err
 }

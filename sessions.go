@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"hash"
 	"crypto/hmac"
+	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"gob"
-	"http"
+	"encoding/gob"
+	"net/http"
 	"strings"
 )
 
 func hashCookie(data, secret string) (sum string) {
-	var h hash.Hash = hmac.NewSHA1([]byte(secret))
+	var h hash.Hash = hmac.New(sha1.New, []byte(secret))
 	h.Write([]byte(data))
-	return string(h.Sum())
+	return string(h.Sum(nil))
 }
 
 func verifyCookie(data, secret, sum string) bool {

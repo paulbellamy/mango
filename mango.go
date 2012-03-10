@@ -3,7 +3,7 @@ package mango
 
 import (
 	"fmt"
-	"http"
+	"net/http"
 	"log"
 	"net/textproto"
 	"os"
@@ -138,7 +138,7 @@ func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
 	}
 }
 
-func (this *Stack) Run(app App) os.Error {
+func (this *Stack) Run(app App) error {
 	if this.Address == "" {
 		this.Address = "0.0.0.0:8000"
 	}
