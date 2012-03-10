@@ -1,7 +1,7 @@
 package main
 
 import (
-	"mango"
+	"../../" // Point this to mango
 )
 
 func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
