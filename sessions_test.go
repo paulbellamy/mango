@@ -32,7 +32,7 @@ func TestSessions(t *testing.T) {
 
 	// Compile the stack
 	sessionsStack := new(Stack)
-	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
+	sessionsStack.Middleware(Sessions("my_secret", "my_key", &CookieOptions{Domain: ".my.domain.com"}))
 	sessionsApp := sessionsStack.Compile(sessionsTestServer)
 
 	// Request against it
@@ -83,7 +83,7 @@ func BenchmarkSessions(b *testing.B) {
 	}
 
 	sessionsStack := new(Stack)
-	sessionsStack.Middleware(Sessions("my_secret", "my_key", ".my.domain.com"))
+	sessionsStack.Middleware(Sessions("my_secret", "my_key", &CookieOptions{Domain: ".my.domain.com"}))
 	sessionsApp := sessionsStack.Compile(sessionsTestServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)

@@ -106,19 +106,31 @@ func prepareSession(env Env, key, secret string) {
 	env["mango.session"] = make(map[string]interface{})
 }
 
-func commitSession(headers Headers, env Env, key, secret, domain string) {
+func commitSession(headers Headers, env Env, key, secret string, options *CookieOptions) {
 	cookie := new(http.Cookie)
 	cookie.Name = key
 	cookie.Value = encodeCookie(env["mango.session"].(map[string]interface{}), secret)
-	cookie.Domain = domain
+	cookie.Path = options.Path
+	cookie.Domain = options.Domain
+	cookie.MaxAge = options.MaxAge
+	cookie.Secure = options.Secure
+	cookie.HttpOnly = options.HttpOnly
 	headers.Add("Set-Cookie", cookie.String())
 }
 
-func Sessions(secret, key, domain string) Middleware {
+type CookieOptions struct {
+	Domain   string
+	Path     string
+	MaxAge   int
+	Secure   bool
+	HttpOnly bool
+}
+
+func Sessions(secret, key string, options *CookieOptions) Middleware {
 	return func(env Env, app App) (status Status, headers Headers, body Body) {
 		prepareSession(env, key, secret)
 		status, headers, body = app(env)
-		commitSession(headers, env, key, secret, domain)
+		commitSession(headers, env, key, secret, options)
 		return status, headers, body
 	}
 }
