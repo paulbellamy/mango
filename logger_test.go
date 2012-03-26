@@ -2,8 +2,8 @@ package mango
 
 import (
 	"bytes"
-	"net/http"
 	"log"
+	"net/http"
 	"testing"
 )
 

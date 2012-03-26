@@ -1,13 +1,13 @@
 package mango
 
 import (
-	"path"
 	"io/ioutil"
 	"os"
+	"path"
 )
 
 func fileIsRegular(fi os.FileInfo) bool {
-  return fi.Mode() & (os.ModeDir | os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice) == 0
+	return fi.Mode()&(os.ModeDir|os.ModeSymlink|os.ModeNamedPipe|os.ModeSocket|os.ModeDevice) == 0
 }
 
 func fileExists(filename string) bool {
@@ -15,8 +15,8 @@ func fileExists(filename string) bool {
 	if err != nil {
 		return false
 	} else if !fileIsRegular(info) {
-    return false
-  }
+		return false
+	}
 
 	return true
 }

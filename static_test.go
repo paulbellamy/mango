@@ -2,8 +2,8 @@ package mango
 
 import (
 	"bytes"
-	"net/http"
 	"io/ioutil"
+	"net/http"
 	"testing"
 )
 
