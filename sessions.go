@@ -2,13 +2,13 @@ package mango
 
 import (
 	"bytes"
-	"hash"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"fmt"
-	"io/ioutil"
 	"encoding/gob"
+	"fmt"
+	"hash"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -50,7 +50,7 @@ func decode64(value string) (result string) {
 func decodeCookie(value, secret string) (cookie map[string]interface{}) {
 	cookie = make(map[string]interface{})
 
-	split := strings.Split(string(value), "--")
+	split := strings.Split(string(value), "/")
 
 	if len(split) < 2 {
 		return cookie
@@ -91,7 +91,7 @@ func encode64(value string) (result string) {
 func encodeCookie(value map[string]interface{}, secret string) (cookie string) {
 	data := encodeGob(value)
 
-	return fmt.Sprintf("%s--%s", encode64(data), encode64(hashCookie(data, secret)))
+	return fmt.Sprintf("%s/%s", encode64(data), encode64(hashCookie(data, secret)))
 }
 
 func prepareSession(env Env, key, secret string) {
