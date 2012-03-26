@@ -9,7 +9,7 @@ func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
 	env.Session()["new_session_attribute"] = "Never Gonna Give You Up"
 
 	// To remove a session attribute delete it from the map
-	env.Session()["old_session_attribute"] = nil, false
+	delete(env.Session(), "old_session_attribute")
 
 	return 200, mango.Headers{}, mango.Body("Hello World!")
 }
