@@ -102,7 +102,7 @@ type Stack struct {
 }
 
 func Version() []int {
-	return []int{0, 3, 6}
+	return []int{0, 4, 0}
 }
 
 func VersionString() string {
