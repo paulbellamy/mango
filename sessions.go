@@ -172,9 +172,12 @@ func sessionCookieValue(env Env, key string) (value string) {
 func cookieChanged(env Env, key, secret string) string {
 	oldCookieValue := sessionCookieValue(env, key)
 	value := env["mango.session"].(map[string]interface{})
-	if len(value) == 0 {
+
+	// old and new both are empty
+	if oldCookieValue == "" && len(value) == 0 {
 		return ""
 	}
+
 	newCookieValue := encodeCookie(value, secret)
 	if oldCookieValue == newCookieValue {
 		return ""
