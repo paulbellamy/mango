@@ -10,8 +10,47 @@ import (
 	"hash"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strings"
 )
+
+type sessionItem struct {
+	Key   string
+	Value interface{}
+}
+
+type sessionItems []sessionItem
+
+func (sis sessionItems) Len() int {
+	return len(sis)
+}
+
+func (sis sessionItems) Less(i, j int) bool {
+	return sis[i].Key < sis[j].Key
+}
+
+func (sis sessionItems) Swap(i, j int) {
+	sis[i], sis[j] = sis[j], sis[i]
+}
+
+func (sis sessionItems) ToMap() (m map[string]interface{}) {
+	m = make(map[string]interface{})
+	for _, item := range sis {
+		m[item.Key] = item.Value
+	}
+	return
+}
+
+func sessionItemsFromMap(m map[string]interface{}) (sis sessionItems) {
+	for k, v := range m {
+		sis = append(sis, sessionItem{
+			Key:   k,
+			Value: v,
+		})
+	}
+	sort.Sort(sis)
+	return
+}
 
 func hashCookie(data, secret string) (sum string) {
 	var h hash.Hash = hmac.New(sha1.New, []byte(secret))
@@ -25,10 +64,12 @@ func verifyCookie(data, secret, sum string) bool {
 
 func decodeGob(value string) (result map[string]interface{}) {
 	buffer := bytes.NewBufferString(value)
+
 	decoder := gob.NewDecoder(buffer)
-	result = make(map[string]interface{})
-	decoder.Decode(&result)
-	return result
+	sis := sessionItems{}
+	decoder.Decode(&sis)
+
+	return sis.ToMap()
 }
 
 // Due to a bug in golang where when using
@@ -65,10 +106,11 @@ func decodeCookie(value, secret string) (cookie map[string]interface{}) {
 	return cookie
 }
 
-func encodeGob(value interface{}) (result string) {
+func encodeGob(value map[string]interface{}) (result string) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
-	encoder.Encode(value)
+	sis := sessionItemsFromMap(value)
+	encoder.Encode(sis)
 	return buffer.String()
 }
 
@@ -95,27 +137,52 @@ func encodeCookie(value map[string]interface{}, secret string) (cookie string) {
 }
 
 func prepareSession(env Env, key, secret string) {
-	for _, cookie := range env.Request().Cookies() {
-		if cookie.Name == key {
-			env["mango.session"] = decodeCookie(cookie.Value, secret)
-			return
-		}
+	value := sessionCookieValue(env, key)
+	if value == "" {
+		// Didn't find a session to decode
+		env["mango.session"] = make(map[string]interface{})
+		return
 	}
-
-	// Didn't find a session to decode
-	env["mango.session"] = make(map[string]interface{})
+	env["mango.session"] = decodeCookie(value, secret)
 }
 
-func commitSession(headers Headers, env Env, key, secret string, options *CookieOptions) {
+func commitSession(headers Headers, env Env, key, secret string, newValue string, options *CookieOptions) {
 	cookie := new(http.Cookie)
 	cookie.Name = key
-	cookie.Value = encodeCookie(env["mango.session"].(map[string]interface{}), secret)
+	cookie.Value = newValue
 	cookie.Path = options.Path
 	cookie.Domain = options.Domain
 	cookie.MaxAge = options.MaxAge
 	cookie.Secure = options.Secure
 	cookie.HttpOnly = options.HttpOnly
 	headers.Add("Set-Cookie", cookie.String())
+}
+
+func sessionCookieValue(env Env, key string) (value string) {
+	for _, cookie := range env.Request().Cookies() {
+		if cookie.Name == key {
+			value = cookie.Value
+			return
+		}
+	}
+	return
+
+}
+
+func cookieChanged(env Env, key, secret string) string {
+	oldCookieValue := sessionCookieValue(env, key)
+	value := env["mango.session"].(map[string]interface{})
+
+	// old and new both are empty
+	if oldCookieValue == "" && len(value) == 0 {
+		return ""
+	}
+
+	newCookieValue := encodeCookie(value, secret)
+	if oldCookieValue == newCookieValue {
+		return ""
+	}
+	return newCookieValue
 }
 
 type CookieOptions struct {
@@ -130,7 +197,11 @@ func Sessions(secret, key string, options *CookieOptions) Middleware {
 	return func(env Env, app App) (status Status, headers Headers, body Body) {
 		prepareSession(env, key, secret)
 		status, headers, body = app(env)
-		commitSession(headers, env, key, secret, options)
-		return status, headers, body
+		newValue := cookieChanged(env, key, secret)
+		if newValue == "" {
+			return
+		}
+		commitSession(headers, env, key, secret, newValue, options)
+		return
 	}
 }
