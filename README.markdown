@@ -1,5 +1,3 @@
-(Disclaimer: Mango is extremely experimental, so don't whine to me when it eats your children.)
-
 # Mango
 
 Mango is a modular web-application framework for Go, inspired by [Rack](http://github.com/rack/rack) and [PEP333](http://www.python.org/dev/peps/pep-0333/).
