@@ -83,7 +83,7 @@ Where:
     )
 
     func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawURL)
+      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
       return 200, mango.Headers{}, mango.Body("Hello World!")
     }
 
@@ -202,7 +202,7 @@ routeNotFound handler returning a 404.
     )
 
     func hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawURL)
+      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
       return 200, mango.Headers{}, mango.Body("Hello World!")
     }
 
