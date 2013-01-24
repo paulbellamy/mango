@@ -2,8 +2,8 @@ package mango
 
 import (
 	"encoding/base64"
-	"strings"
 	"errors"
+	"strings"
 )
 
 func defaultFailure() (Status, Headers, Body) {
@@ -43,11 +43,10 @@ func getAuth(req *Request) (string, string, error) {
 	auth, err := base64.StdEncoding.DecodeString(strings.Replace(auth64, "Basic ", "", 1))
 
 	if err != nil {
-		return "", "", err 
+		return "", "", err
 	}
 
 	result := strings.Split(string(auth), ":")
 
 	return result[0], result[1], nil
 }
-

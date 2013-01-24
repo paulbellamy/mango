@@ -16,7 +16,7 @@ func failurePage(env Env) (Status, Headers, Body) {
 // Example auth function
 func auth(username string, password string, req Request, err error) bool {
 
-	if username == "foo" && password == "foo" { 
+	if username == "foo" && password == "foo" {
 		return true
 	}
 
@@ -38,7 +38,7 @@ func TestSuccessAuthRequest(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	if status != 200 {
 		t.Error("Request did not succeed, expected status 200, got:", status)
 	}
@@ -59,7 +59,7 @@ func TestFailureAuthRequest(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	if status != 403 {
 		t.Error("Request did not succeed, expected status 403, got:", status)
 	}
@@ -79,7 +79,7 @@ func TestFailByDefault(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	if status != 403 {
 		t.Error("Request did not succeed, expected status 403, got:", status)
 	}
