@@ -9,6 +9,11 @@ func successPage(env Env) (Status, Headers, Body) {
 	return 200, Headers{"Content-Type": []string{"text/html"}}, Body("auth success")
 }
 
+func failurePage(env Env) (Status, Headers, Body) {
+	return 403, Headers{"Content-Type": []string{"text/html"}}, Body("auth failed")
+}
+
+// Example auth function
 func auth(username string, password string, req Request, err error) bool {
 
 	if username == "foo" && password == "foo" { 
@@ -18,12 +23,10 @@ func auth(username string, password string, req Request, err error) bool {
 	return false
 }
 
-var test *testing.T
-func TestAuthRequest(t *testing.T) {
+func TestSuccessAuthRequest(t *testing.T) {
 
-	test = t
 	basicAuthStack := new(Stack)
-	basicAuthStack.Middleware(BasicAuth(auth))
+	basicAuthStack.Middleware(BasicAuth(auth, failurePage))
 
 	basicAuthApp := basicAuthStack.Compile(successPage)
 
@@ -41,23 +44,43 @@ func TestAuthRequest(t *testing.T) {
 	}
 }
 
+func TestFailureAuthRequest(t *testing.T) {
 
+	basicAuthStack := new(Stack)
+	basicAuthStack.Middleware(BasicAuth(auth, failurePage))
 
-//func TestBasicRequest(t *testing.T) {
-//
-//	basicAuthStack := new(Stack)
-//	basicAuthStack.Middleware(BasicAuth)
-//
-//	basicAuthApp := basicAuthStack.Compile(successPage)
-//	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-//	status, _, _ := basicAuthApp(Env{"mango.request": &Request{request}})
-//
-//	if err != nil {
-//		t.Error(err)
-//	}
-//
-//	if status != 401 {
-//		t.Error("Expected status to equal 401, got:", status)
-//	}
-//}
-//
+	basicAuthApp := basicAuthStack.Compile(successPage)
+
+	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+	request.SetBasicAuth("fail", "fail")
+
+	status, _, _ := basicAuthApp(Env{"mango.request": &Request{request}})
+
+	if err != nil {
+		t.Error(err)
+	}
+	
+	if status != 403 {
+		t.Error("Request did not succeed, expected status 403, got:", status)
+	}
+}
+
+func TestFailByDefault(t *testing.T) {
+
+	basicAuthStack := new(Stack)
+	basicAuthStack.Middleware(BasicAuth(nil, nil))
+
+	basicAuthApp := basicAuthStack.Compile(successPage)
+
+	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+
+	status, _, _ := basicAuthApp(Env{"mango.request": &Request{request}})
+
+	if err != nil {
+		t.Error(err)
+	}
+	
+	if status != 403 {
+		t.Error("Request did not succeed, expected status 403, got:", status)
+	}
+}
