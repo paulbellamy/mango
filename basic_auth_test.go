@@ -80,7 +80,8 @@ func TestFailByDefault(t *testing.T) {
 		t.Error(err)
 	}
 
-	if status != 403 {
+	// TODO test header
+	if status != 401 {
 		t.Error("Request did not succeed, expected status 403, got:", status)
 	}
 }

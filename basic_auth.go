@@ -7,7 +7,7 @@ import (
 )
 
 func defaultFailure() (Status, Headers, Body) {
-	return 403, Headers{"Content-Type": []string{"text/html"}}, Body("Access Denied.") // default failure page
+	return 401, Headers{"WWW-Authenticate": []string{"Basic realm=\"Basic\""}, "Content-Type": []string{"text/html"}}, Body("Access Denied.") // default failure page
 }
 
 func BasicAuth(auth func(string, string, Request, error) bool, failure func(Env) (Status, Headers, Body)) Middleware {
