@@ -72,6 +72,12 @@ Where:
 
   Provides JSONP support. If a request has a 'callback' parameter, and your application responds with a Content-Type of "application/json", the JSONP middleware will wrap the response in the callback function and set the Content-Type to "application/javascript".
 
+* Basic Auth
+
+  Usage: mango.BasicAuth(auth func(username string, password string, Request, error) bool, failure func(Env) (Status, Headers, Body))
+
+  Performs HTTP Basic Auth. The auth function returns true if the username and password are accepted. If failure is nil, a default failure page will be used.
+
 ## Example App
 
     package main
