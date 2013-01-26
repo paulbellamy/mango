@@ -1,9 +1,10 @@
+// Mango is a modular web-application framework for Go, inspired by Rack and PEP333.
 package mango
 
 import (
 	"fmt"
-	"http"
 	"log"
+	"net/http"
 	"net/textproto"
 	"os"
 )
@@ -101,7 +102,7 @@ type Stack struct {
 }
 
 func Version() []int {
-	return []int{0, 3, 6}
+	return []int{0, 5, 0}
 }
 
 func VersionString() string {
@@ -137,7 +138,7 @@ func (this *Stack) HandlerFunc(app App) http.HandlerFunc {
 	}
 }
 
-func (this *Stack) Run(app App) os.Error {
+func (this *Stack) Run(app App) error {
 	if this.Address == "" {
 		this.Address = "0.0.0.0:8000"
 	}

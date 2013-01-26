@@ -53,7 +53,7 @@ func TestRemovingMimeTypes(t *testing.T) {
 		t.Error("Expected", value, "to have mime type:", expected, "got:", found)
 	}
 
-	MimeTypes[".jpg"] = "", false
+	delete(MimeTypes, ".jpg")
 
 	found = MimeType(value, fallback)
 	if found != fallback {

@@ -1,17 +1,12 @@
 package mango
 
 import (
-	"http"
+	"net/http"
 	"testing"
-	"runtime"
 )
 
 func redirectTestServer(env Env) (Status, Headers, Body) {
 	return Redirect(302, "/somewhere")
-}
-
-func init() {
-	runtime.GOMAXPROCS(4)
 }
 
 func TestRedirect(t *testing.T) {

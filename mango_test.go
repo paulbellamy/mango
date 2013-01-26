@@ -1,12 +1,11 @@
 package mango
 
 import (
-	"http/httptest"
-	"io/ioutil"
-	"testing"
 	"fmt"
-	"http"
-	"runtime"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 func helloWorld(env Env) (Status, Headers, Body) {
@@ -14,8 +13,6 @@ func helloWorld(env Env) (Status, Headers, Body) {
 }
 
 func init() {
-	runtime.GOMAXPROCS(4)
-
 	fmt.Println("Testing Mango Version:", VersionString())
 }
 

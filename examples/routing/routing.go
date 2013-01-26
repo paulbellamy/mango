@@ -1,7 +1,7 @@
 package main
 
 import (
-	"mango"
+  "../../" // Point this to mango
 )
 
 // Our default handler

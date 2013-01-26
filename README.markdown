@@ -1,5 +1,3 @@
-(Disclaimer: Mango is extremely experimental, so don't whine to me when it eats your children.)
-
 # Mango
 
 Mango is a modular web-application framework for Go, inspired by [Rack](http://github.com/rack/rack) and [PEP333](http://www.python.org/dev/peps/pep-0333/).
@@ -74,6 +72,12 @@ Where:
 
   Provides JSONP support. If a request has a 'callback' parameter, and your application responds with a Content-Type of "application/json", the JSONP middleware will wrap the response in the callback function and set the Content-Type to "application/javascript".
 
+* Basic Auth
+
+  Usage: mango.BasicAuth(auth func(username string, password string, Request, error) bool, failure func(Env) (Status, Headers, Body))
+
+  Performs HTTP Basic Auth. The auth function returns true if the username and password are accepted. If failure is nil, a default failure page will be used.
+
 ## Example App
 
     package main
@@ -83,7 +87,7 @@ Where:
     )
 
     func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawURL)
+      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
       return 200, mango.Headers{}, mango.Body("Hello World!")
     }
 
@@ -120,7 +124,7 @@ An extremely basic middleware package is simply a function:
 
     func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
       // Call our upstream app
-      status, headers, body := app.Call(env)
+      status, headers, body := app(env)
 
       // If we got an error
       if status == 500 {
@@ -181,7 +185,7 @@ To use our middleware we would do:
 
       // Initialize our cats middleware with our list of cat_images
       cat_images := []string{"ceiling_cat.jpg", "itteh_bitteh_kittehs.jpg", "monorail_cat.jpg"}
-      cats_middleware = Cats(cat_images)
+      cats_middleware := Cats(cat_images)
 
       stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
 
@@ -202,7 +206,7 @@ routeNotFound handler returning a 404.
     )
 
     func hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RawURL)
+      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
       return 200, mango.Headers{}, mango.Body("Hello World!")
     }
 

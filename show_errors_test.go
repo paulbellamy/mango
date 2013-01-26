@@ -1,18 +1,13 @@
 package mango
 
 import (
-	"http"
+	"net/http"
 	"testing"
-	"runtime"
 )
 
 func showErrorsTestServer(env Env) (Status, Headers, Body) {
 	panic("foo!")
 	return 200, Headers{}, Body("Hello World!")
-}
-
-func init() {
-	runtime.GOMAXPROCS(4)
 }
 
 func TestShowErrors(t *testing.T) {
