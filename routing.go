@@ -42,10 +42,11 @@ func Routing(routes map[string]App) Middleware {
 	}
 
 	return func(env Env, app App) (Status, Headers, Body) {
-		path := []byte(env.Request().URL.Path)
 		for i, matcher := range matchers {
-			if matcher.Match(path) {
-				// Matched a route return it
+			matches := matcher.FindStringSubmatch(env.Request().URL.Path)
+			if len(matches) != 0 {
+				// Matched a route; inject matches and return handler
+				env["Routing.matches"] = matches
 				return handlers[i](env)
 			}
 		}
