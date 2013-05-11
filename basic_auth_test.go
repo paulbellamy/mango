@@ -5,83 +5,30 @@ import (
 	"testing"
 )
 
-func successPage(env Env) (Status, Headers, Body) {
-	return 200, Headers{"Content-Type": []string{"text/html"}}, Body("auth success")
-}
-
-func failurePage(env Env) (Status, Headers, Body) {
-	return 403, Headers{"Content-Type": []string{"text/html"}}, Body("auth failed")
-}
-
-// Example auth function
-func auth(username string, password string, req Request, err error) bool {
-
-	if username == "foo" && password == "foo" {
-		return true
-	}
-
-	return false
-}
-
 func TestSuccessAuthRequest(t *testing.T) {
-
-	basicAuthStack := new(Stack)
-	basicAuthStack.Middleware(BasicAuth(auth, failurePage))
-
-	basicAuthApp := basicAuthStack.Compile(successPage)
-
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	request.SetBasicAuth("foo", "foo")
+	request.SetBasicAuth("foo", "foo_pass")
 
-	status, _, _ := basicAuthApp(Env{"mango.request": &Request{request}})
+  username, password, err := BasicAuth(request)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if status != 200 {
-		t.Error("Request did not succeed, expected status 200, got:", status)
+	if username != "foo" || password != "foo_pass" {
+    t.Error("Request did not succeed, expected username: foo and password: foo_pass, but got:", username, "and:", password)
 	}
 }
 
-func TestFailureAuthRequest(t *testing.T) {
-
-	basicAuthStack := new(Stack)
-	basicAuthStack.Middleware(BasicAuth(auth, failurePage))
-
-	basicAuthApp := basicAuthStack.Compile(successPage)
-
+func TestNoAuthRequest(t *testing.T) {
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	request.SetBasicAuth("fail", "fail")
+  username, password, err := BasicAuth(request)
 
-	status, _, _ := basicAuthApp(Env{"mango.request": &Request{request}})
-
-	if err != nil {
-		t.Error(err)
+	if err == nil {
+    t.Error("Expected an error, but got none")
 	}
 
-	if status != 403 {
-		t.Error("Request did not succeed, expected status 403, got:", status)
-	}
-}
-
-func TestFailByDefault(t *testing.T) {
-
-	basicAuthStack := new(Stack)
-	basicAuthStack.Middleware(BasicAuth(nil, nil))
-
-	basicAuthApp := basicAuthStack.Compile(successPage)
-
-	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-
-	status, _, _ := basicAuthApp(Env{"mango.request": &Request{request}})
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	// TODO test header
-	if status != 401 {
-		t.Error("Request did not succeed, expected status 403, got:", status)
+	if username != "" || password != "" {
+    t.Error("Request did not succeed, expected username: nil and password: nil, but got:", username, "and:", password)
 	}
 }

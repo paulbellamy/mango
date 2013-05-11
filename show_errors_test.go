@@ -5,20 +5,21 @@ import (
 	"testing"
 )
 
-func showErrorsTestServer(env Env) (Status, Headers, Body) {
+func showErrorsTestServer(w http.ResponseWriter, r *http.Request) {
 	panic("foo!")
-	return 200, Headers{}, Body("Hello World!")
+  w.Write([]byte("Hello World!"))
 }
 
 func TestShowErrors(t *testing.T) {
-	// Compile the stack
-	showErrorsStack := new(Stack)
-	showErrorsStack.Middleware(ShowErrors("<html><body>{{.Error|html}}</body></html>"))
-	showErrorsApp := showErrorsStack.Compile(showErrorsTestServer)
+	// Compile the app
+  app := ShowErrors("<html><body>{{.Error|html}}</body></html>", showErrorsTestServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	status, _, body := showErrorsApp(Env{"mango.request": &Request{request}})
+  response := &MockResponseWriter{}
+	app(response, request)
+  status := response.Status
+  body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -37,15 +38,16 @@ func TestShowErrors(t *testing.T) {
 func BenchmarkShowErrors(b *testing.B) {
 	b.StopTimer()
 
-	showErrorsStack := new(Stack)
-	showErrorsStack.Middleware(ShowErrors("<html><body>{Error|html}</body></html>"))
-	showErrorsApp := showErrorsStack.Compile(showErrorsTestServer)
+  app := ShowErrors("<html><body>{Error|html}</body></html>", showErrorsTestServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
+  response := &MockResponseWriter{}
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		showErrorsApp(Env{"mango.request": &Request{request}})
+		app(response, request)
+    response.Status = 0
+    response.Body.Reset()
 	}
 	b.StopTimer()
 }

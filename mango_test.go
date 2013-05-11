@@ -1,56 +1,43 @@
 package mango
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
-func helloWorld(env Env) (Status, Headers, Body) {
-	return 200, Headers{}, Body("Hello World!")
+type MockResponseWriter struct {
+  headers http.Header
+  started bool
+  Status  int
+  Body    bytes.Buffer
+}
+
+func NewMockResponseWriter() *MockResponseWriter {
+  return &MockResponseWriter{
+    headers: make(map[string][]string),
+  }
+}
+
+func (w *MockResponseWriter) Header() http.Header {
+  return w.headers
+}
+
+func (w *MockResponseWriter) Write(p []byte) (int, error) {
+  if !w.started {
+    w.started = true
+    w.Status = 200
+  }
+  return w.Body.Write(p)
+}
+
+func (w *MockResponseWriter) WriteHeader(status int) {
+  if !w.started {
+    w.started = true
+    w.Status = status
+  }
 }
 
 func init() {
 	fmt.Println("Testing Mango Version:", VersionString())
-}
-
-func TestHelloWorld(t *testing.T) {
-	stack := new(Stack)
-	testServer := httptest.NewServer(stack.HandlerFunc(helloWorld))
-	defer testServer.Close()
-
-	var client = http.Client{}
-
-	// Request against it
-	response, err := client.Get(testServer.URL)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if response.StatusCode != 200 {
-		t.Error("Expected status to equal 200, got:", response.StatusCode)
-	}
-
-	body, _ := ioutil.ReadAll(response.Body)
-	if string(body) != "Hello World!" {
-		t.Error("Expected body:", string(body), "to equal: \"Hello World!\"")
-	}
-}
-
-func BenchmarkHelloWorld(b *testing.B) {
-	b.StopTimer()
-
-	stack := new(Stack)
-	testServer := httptest.NewServer(stack.HandlerFunc(helloWorld))
-	defer testServer.Close()
-	address := testServer.URL
-
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		http.Get(address)
-	}
-	b.StopTimer()
 }

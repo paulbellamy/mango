@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"net/http"
 )
 
-func ShowErrors(templateString string) Middleware {
+func ShowErrors(templateString string, f http.HandlerFunc) http.HandlerFunc {
 	if templateString == "" {
 		templateString = `
       <html>
@@ -21,17 +22,16 @@ func ShowErrors(templateString string) Middleware {
 
 	errorTemplate := template.Must(template.New("error").Parse(templateString))
 
-	return func(env Env, app App) (status Status, headers Headers, body Body) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				buffer := bytes.NewBufferString("")
+				buffer := &bytes.Buffer{}
 				errorTemplate.Execute(buffer, struct{ Error string }{fmt.Sprintf("%s", err)})
-				status = 500
-				headers = Headers{}
-				body = Body(buffer.String())
+        w.WriteHeader(500)
+        w.Write(buffer.Bytes())
 			}
 		}()
 
-		return app(env)
+		f(w, r)
 	}
 }

@@ -5,23 +5,28 @@ import (
 	"testing"
 )
 
-func jsonServer(env Env) (Status, Headers, Body) {
-	return 200, Headers{"Content-Type": []string{"application/json"}, "Content-Length": []string{"13"}}, Body("{\"foo\":\"bar\"}")
+func jsonServer(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Content-Length", "13")
+  w.Write([]byte("{\"foo\":\"bar\"}"))
 }
 
-func nonJsonServer(env Env) (Status, Headers, Body) {
-	return 200, Headers{"Content-Type": []string{"text/html"}}, Body("<h1>Hello World!</h1>")
+func nonJsonServer(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "text/html")
+  w.Write([]byte("<h1>Hello World!</h1>"))
 }
 
 func TestJSONPSuccess(t *testing.T) {
 	// Compile the stack
-	jsonpStack := new(Stack)
-	jsonpStack.Middleware(JSONP)
-	jsonpApp := jsonpStack.Compile(jsonServer)
+  app := JSONP(jsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
-	status, headers, body := jsonpApp(Env{"mango.request": &Request{request}})
+  response := NewMockResponseWriter()
+	app(response, request)
+  status := response.Status
+  headers := response.Header()
+  body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -47,13 +52,15 @@ func TestJSONPSuccess(t *testing.T) {
 
 func TestNonJSONPSuccess(t *testing.T) {
 	// Compile the stack
-	nonJsonpStack := new(Stack)
-	nonJsonpStack.Middleware(JSONP)
-	nonJsonpApp := nonJsonpStack.Compile(nonJsonServer)
+  app := JSONP(nonJsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
-	status, headers, body := nonJsonpApp(Env{"mango.request": &Request{request}})
+  response := NewMockResponseWriter()
+	app(response, request)
+  status := response.Status
+  headers := response.Header()
+  body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -79,13 +86,15 @@ func TestNonJSONPSuccess(t *testing.T) {
 
 func TestJSONPNoCallback(t *testing.T) {
 	// Compile the stack
-	jsonpStack := new(Stack)
-	jsonpStack.Middleware(JSONP)
-	jsonpApp := jsonpStack.Compile(jsonServer)
+  app := JSONP(jsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	status, headers, body := jsonpApp(Env{"mango.request": &Request{request}})
+  response := NewMockResponseWriter()
+	app(response, request)
+  status := response.Status
+  headers := response.Header()
+  body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -111,13 +120,15 @@ func TestJSONPNoCallback(t *testing.T) {
 
 func TestJSONPInvalidCallback(t *testing.T) {
 	// Compile the stack
-	jsonpStack := new(Stack)
-	jsonpStack.Middleware(JSONP)
-	jsonpApp := jsonpStack.Compile(jsonServer)
+  app := JSONP(jsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=invalid(callback)", nil)
-	status, headers, body := jsonpApp(Env{"mango.request": &Request{request}})
+  response := NewMockResponseWriter()
+	app(response, request)
+  status := response.Status
+  headers := response.Header()
+  body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -144,15 +155,14 @@ func TestJSONPInvalidCallback(t *testing.T) {
 func BenchmarkJSONP(b *testing.B) {
 	b.StopTimer()
 
-	jsonpStack := new(Stack)
-	jsonpStack.Middleware(JSONP)
-	jsonpApp := jsonpStack.Compile(jsonServer)
+  app := JSONP(jsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		jsonpApp(Env{"mango.request": &Request{request}})
+    response := NewMockResponseWriter()
+    app(response, request)
 	}
 	b.StopTimer()
 }
@@ -160,15 +170,14 @@ func BenchmarkJSONP(b *testing.B) {
 func BenchmarkNonJSONP(b *testing.B) {
 	b.StopTimer()
 
-	nonJsonpStack := new(Stack)
-	nonJsonpStack.Middleware(JSONP)
-	nonJsonpApp := nonJsonpStack.Compile(nonJsonServer)
+  app := JSONP(nonJsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		nonJsonpApp(Env{"mango.request": &Request{request}})
+    response := NewMockResponseWriter()
+		app(response, request)
 	}
 	b.StopTimer()
 }
@@ -176,15 +185,14 @@ func BenchmarkNonJSONP(b *testing.B) {
 func BenchmarkJSONPNoCallback(b *testing.B) {
 	b.StopTimer()
 
-	jsonpStack := new(Stack)
-	jsonpStack.Middleware(JSONP)
-	jsonpApp := jsonpStack.Compile(jsonServer)
+  app := JSONP(jsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		jsonpApp(Env{"mango.request": &Request{request}})
+    response := NewMockResponseWriter()
+		app(response, request)
 	}
 	b.StopTimer()
 }
@@ -192,15 +200,14 @@ func BenchmarkJSONPNoCallback(b *testing.B) {
 func BenchmarkJSONPInvalidCallback(b *testing.B) {
 	b.StopTimer()
 
-	jsonpStack := new(Stack)
-	jsonpStack.Middleware(JSONP)
-	jsonpApp := jsonpStack.Compile(jsonServer)
+  app := JSONP(jsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=invalid(callback)", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		jsonpApp(Env{"mango.request": &Request{request}})
+    response := NewMockResponseWriter()
+		app(response, request)
 	}
 	b.StopTimer()
 }

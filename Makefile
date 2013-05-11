@@ -5,14 +5,12 @@ GOFMT=gofmt
 
 GOFILES=\
 				mango.go\
-				logger.go\
 				show_errors.go\
 				sessions.go\
-				routing.go\
+				routes.go\
 				static.go\
 				jsonp.go\
 				mime.go\
-				redirect.go\
 
 include $(GOROOT)/src/Make.pkg
 
