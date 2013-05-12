@@ -18,7 +18,7 @@ func TestStaticSuccess(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/static.html", nil)
-	response := NewMockResponseWriter()
+	response := NewBufferedResponseWriter()
 	app(response, request)
 	status := response.Status
 	headers := response.Header()
@@ -50,7 +50,7 @@ func TestStaticNoUpstream(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/not_a_file.html", nil)
-	response := NewMockResponseWriter()
+	response := NewBufferedResponseWriter()
 	app(response, request)
 	status := response.Status
 	body := response.Body.String()
@@ -75,7 +75,7 @@ func TestStaticFail(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/not_a_file.html", nil)
-	response := NewMockResponseWriter()
+	response := NewBufferedResponseWriter()
 	app(response, request)
 	status := response.Status
 	body := response.Body.String()
@@ -100,7 +100,7 @@ func TestStaticBinaryFile(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/binary_file.png", nil)
-	response := NewMockResponseWriter()
+	response := NewBufferedResponseWriter()
 	app(response, request)
 	status := response.Status
 	body := response.Body.String()
@@ -132,7 +132,7 @@ func BenchmarkStatic(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewMockResponseWriter()
+		response := NewBufferedResponseWriter()
 		app(response, request)
 	}
 	b.StopTimer()

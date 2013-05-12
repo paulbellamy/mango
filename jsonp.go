@@ -23,7 +23,7 @@ func JSONP(f http.HandlerFunc) http.HandlerFunc {
 			}
 		}
 
-		wrapped := NewMockResponseWriter()
+		wrapped := NewBufferedResponseWriter()
 		f(wrapped, r)
 
 		status := wrapped.Status

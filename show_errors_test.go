@@ -16,7 +16,7 @@ func TestShowErrors(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	response := &MockResponseWriter{}
+	response := &BufferedResponseWriter{}
 	app(response, request)
 	status := response.Status
 	body := response.Body.String()
@@ -41,7 +41,7 @@ func BenchmarkShowErrors(b *testing.B) {
 	app := ShowErrors("<html><body>{Error|html}</body></html>", showErrorsTestServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
-	response := &MockResponseWriter{}
+	response := &BufferedResponseWriter{}
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
