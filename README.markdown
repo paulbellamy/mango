@@ -41,7 +41,7 @@ Where possible everything is designed to work independently, but also be composa
 
 * GET/POST/PUT/DELETE/HEAD/OPTIONS/PATCH/ANY
 
-  Usage: mango.Get(path string, http.HandlerFunc) http.HandlerFunc
+  Usage: mango.GET(path string, http.HandlerFunc) http.HandlerFunc
 
   Creates a scoped handler which will only respond to the matching path regexp, and HTTP method. Best used in conjunction with the Routes helper.
 
