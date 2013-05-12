@@ -22,7 +22,7 @@ func TestJSONPSuccess(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	headers := response.Header()
@@ -56,7 +56,7 @@ func TestNonJSONPSuccess(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	headers := response.Header()
@@ -90,7 +90,7 @@ func TestJSONPNoCallback(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	headers := response.Header()
@@ -124,7 +124,7 @@ func TestJSONPInvalidCallback(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=invalid(callback)", nil)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	headers := response.Header()
@@ -161,7 +161,7 @@ func BenchmarkJSONP(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewBufferedResponseWriter()
+		response := NewBufferedResponseWriter(nil)
 		app(response, request)
 	}
 	b.StopTimer()
@@ -176,7 +176,7 @@ func BenchmarkNonJSONP(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewBufferedResponseWriter()
+		response := NewBufferedResponseWriter(nil)
 		app(response, request)
 	}
 	b.StopTimer()
@@ -191,7 +191,7 @@ func BenchmarkJSONPNoCallback(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewBufferedResponseWriter()
+		response := NewBufferedResponseWriter(nil)
 		app(response, request)
 	}
 	b.StopTimer()
@@ -206,7 +206,7 @@ func BenchmarkJSONPInvalidCallback(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewBufferedResponseWriter()
+		response := NewBufferedResponseWriter(nil)
 		app(response, request)
 	}
 	b.StopTimer()

@@ -27,7 +27,7 @@ func TestRoutesSuccess(t *testing.T) {
 
 	// Request against A
 	request, err := http.NewRequest("GET", "http://localhost:3000/a", nil)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	body := response.Body.String()
@@ -47,7 +47,7 @@ func TestRoutesSuccess(t *testing.T) {
 
 	// Request against B
 	request, err = http.NewRequest("GET", "http://localhost:3000/b", nil)
-	response = NewBufferedResponseWriter()
+	response = NewBufferedResponseWriter(nil)
 	app(response, request)
 	status = response.Status
 	body = response.Body.String()
@@ -76,7 +76,7 @@ func TestRoutesFailure(t *testing.T) {
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/c", nil)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	body := response.Body.String()
@@ -108,7 +108,7 @@ func BenchmarkRoutes(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewBufferedResponseWriter()
+		response := NewBufferedResponseWriter(nil)
 		app(response, request)
 	}
 	b.StopTimer()

@@ -42,7 +42,7 @@ func TestSessions(t *testing.T) {
 	initial_cookie.Value = encodeCookie(map[string]interface{}{"counter": 1}, "my_secret")
 	initial_cookie.Domain = ".my.domain.com"
 	request.AddCookie(initial_cookie)
-	response := NewBufferedResponseWriter()
+	response := NewBufferedResponseWriter(nil)
 	app(response, request)
 	status := response.Status
 	headers := response.Header()
@@ -95,7 +95,7 @@ func BenchmarkSessions(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		response := NewBufferedResponseWriter()
+		response := NewBufferedResponseWriter(nil)
 		app(response, request)
 	}
 	b.StopTimer()
