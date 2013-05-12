@@ -21,19 +21,19 @@ func TestSessionEncodingDecoding(t *testing.T) {
 }
 
 func TestSessions(t *testing.T) {
-	sessionsTestServer := func(env Env) (Status, Headers, Body) {
-		counter := env.Session()["counter"].(int)
+	app := func(w http.ResponseWriter, r *http.Request) {
+		session := Session(r, "my_key", "my_secret", &CookieOptions{Domain: ".my.domain.com"})
+		counter, ok := session.Get("counter").(int)
+		if !ok {
+			t.Error("Counter not found in session")
+		}
 		if counter != 1 {
 			t.Error("Expected session[\"counter\"] to equal:", 1, "got:", counter)
 		}
-		env.Session()["counter"] = counter + 1
-		return 200, Headers{}, Body("Hello World!")
+		session.Set("counter", counter+1)
+		session.Write(w)
+		w.Write([]byte("Hello World!"))
 	}
-
-	// Compile the stack
-	sessionsStack := new(Stack)
-	sessionsStack.Middleware(Sessions("my_secret", "my_key", &CookieOptions{Domain: ".my.domain.com"}))
-	sessionsApp := sessionsStack.Compile(sessionsTestServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
@@ -42,7 +42,10 @@ func TestSessions(t *testing.T) {
 	initial_cookie.Value = encodeCookie(map[string]interface{}{"counter": 1}, "my_secret")
 	initial_cookie.Domain = ".my.domain.com"
 	request.AddCookie(initial_cookie)
-	status, headers, _ := sessionsApp(Env{"mango.request": &Request{request}})
+	response := NewMockResponseWriter()
+	app(response, request)
+	status := response.Status
+	headers := response.Header()
 
 	if err != nil {
 		t.Error(err)
@@ -77,20 +80,23 @@ func TestSessions(t *testing.T) {
 func BenchmarkSessions(b *testing.B) {
 	b.StopTimer()
 
-	sessionsTestServer := func(env Env) (Status, Headers, Body) {
-		env.Session()["counter"] = env.Session()["counter"].(int) + 1
-		return 200, Headers{}, Body("Hello World!")
+	app := func(w http.ResponseWriter, r *http.Request) {
+		session := Session(r, "my_secret", "my_key", &CookieOptions{Domain: ".my.domain.com"})
+		counter := session.Get("counter").(int)
+		if counter != 1 {
+			b.Error("Expected session[\"counter\"] to equal:", 1, "got:", counter)
+		}
+		session.Set("counter", counter+1)
+		session.Write(w)
+		w.Write([]byte("Hello World!"))
 	}
-
-	sessionsStack := new(Stack)
-	sessionsStack.Middleware(Sessions("my_secret", "my_key", &CookieOptions{Domain: ".my.domain.com"}))
-	sessionsApp := sessionsStack.Compile(sessionsTestServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		sessionsApp(Env{"mango.request": &Request{request}})
+		response := NewMockResponseWriter()
+		app(response, request)
 	}
 	b.StopTimer()
 }

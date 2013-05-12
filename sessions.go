@@ -14,6 +14,57 @@ import (
 	"strings"
 )
 
+type SessionWrapper struct {
+	r             *http.Request
+	changed       bool
+	key           string
+	secret        string
+	cookieOptions *CookieOptions
+	values        map[string]interface{}
+}
+
+func (s *SessionWrapper) Deserialize() {
+	value := sessionCookieValue(s.r, s.key)
+	if value == "" {
+		s.values = make(map[string]interface{})
+		return
+	}
+	s.values = decodeCookie(value, s.secret)
+}
+
+func (s *SessionWrapper) Get(name string) interface{} {
+	return s.values[name]
+}
+
+func (s *SessionWrapper) Set(name string, value interface{}) {
+	if s.values[name] != value {
+		s.changed = true
+		s.values[name] = value
+	}
+}
+
+func (s *SessionWrapper) Serialize() string {
+	return encodeCookie(s.values, s.secret)
+}
+
+func (s *SessionWrapper) Write(w http.ResponseWriter) {
+	if s.changed {
+		newValue := s.Serialize()
+		if newValue == "" {
+			return
+		}
+		cookie := new(http.Cookie)
+		cookie.Name = s.key
+		cookie.Value = newValue
+		cookie.Path = s.cookieOptions.Path
+		cookie.Domain = s.cookieOptions.Domain
+		cookie.MaxAge = s.cookieOptions.MaxAge
+		cookie.Secure = s.cookieOptions.Secure
+		cookie.HttpOnly = s.cookieOptions.HttpOnly
+		w.Header().Add("Set-Cookie", cookie.String())
+	}
+}
+
 type sessionItem struct {
 	Key   string
 	Value interface{}
@@ -88,8 +139,8 @@ func decode64(value string) (result string) {
 	return string(decoded)
 }
 
-func decodeCookie(value, secret string) (cookie map[string]interface{}) {
-	cookie = make(map[string]interface{})
+func decodeCookie(value, secret string) map[string]interface{} {
+	cookie := make(map[string]interface{})
 
 	split := strings.Split(string(value), "/")
 
@@ -114,6 +165,12 @@ func encodeGob(value map[string]interface{}) (result string) {
 	return buffer.String()
 }
 
+func encodeCookie(values map[string]interface{}, secret string) string {
+	data := encodeGob(values)
+
+	return fmt.Sprintf("%s/%s", encode64(data), encode64(hashCookie(data, secret)))
+}
+
 // Due to a bug in golang where when using
 // base64.URLEncoding padding is still added
 // (it shouldn't be), we have to strip and add
@@ -130,59 +187,12 @@ func encode64(value string) (result string) {
 	return dePad64(buffer.String())
 }
 
-func encodeCookie(value map[string]interface{}, secret string) (cookie string) {
-	data := encodeGob(value)
-
-	return fmt.Sprintf("%s/%s", encode64(data), encode64(hashCookie(data, secret)))
-}
-
-func prepareSession(env Env, key, secret string) {
-	value := sessionCookieValue(env, key)
-	if value == "" {
-		// Didn't find a session to decode
-		env["mango.session"] = make(map[string]interface{})
-		return
-	}
-	env["mango.session"] = decodeCookie(value, secret)
-}
-
-func commitSession(headers Headers, env Env, key, secret string, newValue string, options *CookieOptions) {
-	cookie := new(http.Cookie)
-	cookie.Name = key
-	cookie.Value = newValue
-	cookie.Path = options.Path
-	cookie.Domain = options.Domain
-	cookie.MaxAge = options.MaxAge
-	cookie.Secure = options.Secure
-	cookie.HttpOnly = options.HttpOnly
-	headers.Add("Set-Cookie", cookie.String())
-}
-
-func sessionCookieValue(env Env, key string) (value string) {
-	for _, cookie := range env.Request().Cookies() {
-		if cookie.Name == key {
-			value = cookie.Value
-			return
-		}
-	}
-	return
-
-}
-
-func cookieChanged(env Env, key, secret string) string {
-	oldCookieValue := sessionCookieValue(env, key)
-	value := env["mango.session"].(map[string]interface{})
-
-	// old and new both are empty
-	if oldCookieValue == "" && len(value) == 0 {
+func sessionCookieValue(r *http.Request, key string) string {
+	if cookie, err := r.Cookie(key); err == nil {
+		return cookie.Value
+	} else {
 		return ""
 	}
-
-	newCookieValue := encodeCookie(value, secret)
-	if oldCookieValue == newCookieValue {
-		return ""
-	}
-	return newCookieValue
 }
 
 type CookieOptions struct {
@@ -193,15 +203,13 @@ type CookieOptions struct {
 	HttpOnly bool
 }
 
-func Sessions(secret, key string, options *CookieOptions) Middleware {
-	return func(env Env, app App) (status Status, headers Headers, body Body) {
-		prepareSession(env, key, secret)
-		status, headers, body = app(env)
-		newValue := cookieChanged(env, key, secret)
-		if newValue == "" {
-			return
-		}
-		commitSession(headers, env, key, secret, newValue, options)
-		return
+func Session(r *http.Request, key, secret string, options *CookieOptions) *SessionWrapper {
+	wrapper := &SessionWrapper{
+		r:             r,
+		key:           key,
+		secret:        secret,
+		cookieOptions: options,
 	}
+	wrapper.Deserialize()
+	return wrapper
 }
