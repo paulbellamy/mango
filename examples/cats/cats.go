@@ -1,16 +1,17 @@
 package main
 
 import (
-  "../../" // Point this to mango
-  "net/http"
-  "os"
-  "io/ioutil"
+	. "../../" // Point this to mango
+	"io/ioutil"
+	"log"
 	"math/rand"
+	"net/http"
+	"os"
 	"regexp"
 )
 
 // Our custom middleware
-func Cats(cat_images []string) mango.Middleware {
+func Cats(cat_images []string, app http.HandlerFunc) http.HandlerFunc {
 	// Initial setup stuff here
 	// Done on application setup
 
@@ -18,50 +19,54 @@ func Cats(cat_images []string) mango.Middleware {
 	regex := regexp.MustCompile("[^\"']+(.jpg|.png|.gif)")
 
 	// This is our middleware's request handler
-	return func(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// create a buffer to catch the response
+		response := NewBufferedResponseWriter(w)
+
 		// Call the upstream application
-		status, headers, body := app(env)
+		app(response, r)
 
 		// Pick a random cat image
 		image_url := cat_images[rand.Int()%len(cat_images)]
 
-		// Substitute in our cat picture
-		body = mango.Body(regex.ReplaceAllString(string(body), image_url))
+		// Substitute in our cat picture. There is probably a more efficient way of
+		// doing this, but in the interest of brevity we just replace the whole
+		// body, which is inefficient.
+		newBody := regex.ReplaceAllString(response.Body.String(), image_url)
+		response.Body.Reset()
+		response.Body.WriteString(newBody)
 
 		// Send the modified response onwards
-		return status, headers, body
+		response.Flush()
 	}
 }
 
-func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-  env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().URL)
+func Hello(w http.ResponseWriter, r *http.Request) {
+	log.Println("Got a", r.Method, "request for", r.URL)
 
-  response, err := http.Get("http://www.example.com/")
-  if err != nil {
-  	env.Logger().Printf("%s", err)
-    os.Exit(1)
-  }
-  defer response.Body.Close()
-  
-  contents, err := ioutil.ReadAll(response.Body)
-  if err != nil {
-    env.Logger().Printf("%s", err)
-    os.Exit(1)
-  }
-  
-  return 200, mango.Headers{}, mango.Body(contents)
+	// Fetch some dummy html
+	response, err := http.Get("http://www.example.com/")
+	if err != nil {
+		log.Printf("%s", err)
+		os.Exit(1)
+	}
+	defer response.Body.Close()
+
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Printf("%s", err)
+		os.Exit(1)
+	}
+
+	w.Write(contents)
 }
 
 func main() {
 
-  stack := new(mango.Stack)
-  stack.Address = ":3000"
+	// Initialize our cats middleware with our list of cat_images
+	cat_images := []string{"http://images.cheezburger.com/completestore/2010/7/4/9440dc57-52a6-4122-9ab3-efd4daa0ff60.jpg", "http://images.icanhascheezburger.com/completestore/2008/12/10/128733944185267668.jpg"}
+	app := Cats(cat_images, Hello)
 
-  // Initialize our cats middleware with our list of cat_images
-  cat_images := []string{"http://images.cheezburger.com/completestore/2010/7/4/9440dc57-52a6-4122-9ab3-efd4daa0ff60.jpg", "http://images.icanhascheezburger.com/completestore/2008/12/10/128733944185267668.jpg"}
-  cats_middleware := Cats(cat_images)
-
-  stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
-
-  stack.Run(Hello)
+	http.HandleFunc("/", app)
+	http.ListenAndServe(":3000", nil)
 }

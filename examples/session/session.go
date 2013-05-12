@@ -1,22 +1,31 @@
 package main
 
 import (
-  "../../" // Point this to mango
+	. "../../" // Point this to mango
+	"fmt"
+	"net/http"
 )
 
-func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-	// to add a session attribute just add it to the map
-	env.Session()["new_session_attribute"] = "Never Gonna Give You Up"
+func Hello(w http.ResponseWriter, r *http.Request) {
+	// Load the session from the request
+	session := Session(r, "my_session_key", "my_secret", nil)
 
-	// To remove a session attribute delete it from the map
-	delete(env.Session(), "old_session_attribute")
+	// to add a session attribute
+	session.Set("new_session_attribute", "Never Gonna Give You Up")
 
-	return 200, mango.Headers{}, mango.Body("Hello World!")
+	// to read a session atribute
+	counter, _ := session.Get("counter").(int)
+	session.Set("counter", counter+1)
+
+	// To remove a session attribute
+	session.Del("old_session_attribute")
+
+	// Finish the session before sending a response
+	session.Write(w)
+	w.Write([]byte(fmt.Sprintf("Session contained: %v", session)))
 }
 
 func main() {
-	stack := new(mango.Stack)
-	stack.Address = ":3000"
-	stack.Middleware(mango.Sessions("my_secret", "my_session_key", ".my.domain.com"))
-	stack.Run(Hello)
+	http.HandleFunc("/", Hello)
+	http.ListenAndServe(":3000", nil)
 }
