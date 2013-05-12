@@ -27,8 +27,8 @@ func ShowErrors(templateString string, f http.HandlerFunc) http.HandlerFunc {
 			if err := recover(); err != nil {
 				buffer := &bytes.Buffer{}
 				errorTemplate.Execute(buffer, struct{ Error string }{fmt.Sprintf("%s", err)})
-        w.WriteHeader(500)
-        w.Write(buffer.Bytes())
+				w.WriteHeader(500)
+				w.Write(buffer.Bytes())
 			}
 		}()
 

@@ -7,35 +7,35 @@ import (
 )
 
 type MockResponseWriter struct {
-  headers http.Header
-  started bool
-  Status  int
-  Body    bytes.Buffer
+	headers http.Header
+	started bool
+	Status  int
+	Body    bytes.Buffer
 }
 
 func NewMockResponseWriter() *MockResponseWriter {
-  return &MockResponseWriter{
-    headers: make(map[string][]string),
-  }
+	return &MockResponseWriter{
+		headers: make(map[string][]string),
+	}
 }
 
 func (w *MockResponseWriter) Header() http.Header {
-  return w.headers
+	return w.headers
 }
 
 func (w *MockResponseWriter) Write(p []byte) (int, error) {
-  if !w.started {
-    w.started = true
-    w.Status = 200
-  }
-  return w.Body.Write(p)
+	if !w.started {
+		w.started = true
+		w.Status = 200
+	}
+	return w.Body.Write(p)
 }
 
 func (w *MockResponseWriter) WriteHeader(status int) {
-  if !w.started {
-    w.started = true
-    w.Status = status
-  }
+	if !w.started {
+		w.started = true
+		w.Status = status
+	}
 }
 
 func init() {

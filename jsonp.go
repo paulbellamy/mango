@@ -15,42 +15,42 @@ func JSONP(f http.HandlerFunc) http.HandlerFunc {
 
 		if callback != "" {
 			if !jsonp_valid_callback_matcher.MatchString(callback) {
-        w.Header().Set("Content-Type", "text/plain")
-        w.Header().Set("Content-Length", "11")
-        w.WriteHeader(400)
-        w.Write([]byte("Bad Request"))
-        return
+				w.Header().Set("Content-Type", "text/plain")
+				w.Header().Set("Content-Length", "11")
+				w.WriteHeader(400)
+				w.Write([]byte("Bad Request"))
+				return
 			}
 		}
 
-    wrapped := NewMockResponseWriter()
+		wrapped := NewMockResponseWriter()
 		f(wrapped, r)
 
-    status := wrapped.Status
-    headers := wrapped.Header()
-    body := wrapped.Body
+		status := wrapped.Status
+		headers := wrapped.Header()
+		body := wrapped.Body
 		if callback != "" && strings.Contains(headers.Get("Content-Type"), "application/json") {
 			headers.Set("Content-Type", strings.Replace(headers.Get("Content-Type"), "json", "javascript", -1))
 			if headers.Get("Content-Length") != "" {
-				headers.Set("Content-Length", fmt.Sprintf("%d", len(body.Bytes()) + len(callback) + 2))
+				headers.Set("Content-Length", fmt.Sprintf("%d", len(body.Bytes())+len(callback)+2))
 			}
-      for key, values := range headers {
-        for _, value := range values {
-          w.Header().Add(key, value)
-        }
-      }
-      w.WriteHeader(status)
-      w.Write([]byte(fmt.Sprintf("%s(", callback)))
-      w.Write(body.Bytes())
-      w.Write([]byte(")"))
+			for key, values := range headers {
+				for _, value := range values {
+					w.Header().Add(key, value)
+				}
+			}
+			w.WriteHeader(status)
+			w.Write([]byte(fmt.Sprintf("%s(", callback)))
+			w.Write(body.Bytes())
+			w.Write([]byte(")"))
 		} else {
-      for key, values := range headers {
-        for _, value := range values {
-          w.Header().Add(key, value)
-        }
-      }
-      w.WriteHeader(status)
-      w.Write(body.Bytes())
-    }
+			for key, values := range headers {
+				for _, value := range values {
+					w.Header().Add(key, value)
+				}
+			}
+			w.WriteHeader(status)
+			w.Write(body.Bytes())
+		}
 	}
 }

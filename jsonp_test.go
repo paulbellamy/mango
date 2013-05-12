@@ -6,27 +6,27 @@ import (
 )
 
 func jsonServer(w http.ResponseWriter, r *http.Request) {
-  w.Header().Set("Content-Type", "application/json")
-  w.Header().Set("Content-Length", "13")
-  w.Write([]byte("{\"foo\":\"bar\"}"))
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", "13")
+	w.Write([]byte("{\"foo\":\"bar\"}"))
 }
 
 func nonJsonServer(w http.ResponseWriter, r *http.Request) {
-  w.Header().Set("Content-Type", "text/html")
-  w.Write([]byte("<h1>Hello World!</h1>"))
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte("<h1>Hello World!</h1>"))
 }
 
 func TestJSONPSuccess(t *testing.T) {
 	// Compile the stack
-  app := JSONP(jsonServer)
+	app := JSONP(jsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
-  response := NewMockResponseWriter()
+	response := NewMockResponseWriter()
 	app(response, request)
-  status := response.Status
-  headers := response.Header()
-  body := response.Body.String()
+	status := response.Status
+	headers := response.Header()
+	body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -52,15 +52,15 @@ func TestJSONPSuccess(t *testing.T) {
 
 func TestNonJSONPSuccess(t *testing.T) {
 	// Compile the stack
-  app := JSONP(nonJsonServer)
+	app := JSONP(nonJsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
-  response := NewMockResponseWriter()
+	response := NewMockResponseWriter()
 	app(response, request)
-  status := response.Status
-  headers := response.Header()
-  body := response.Body.String()
+	status := response.Status
+	headers := response.Header()
+	body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -86,15 +86,15 @@ func TestNonJSONPSuccess(t *testing.T) {
 
 func TestJSONPNoCallback(t *testing.T) {
 	// Compile the stack
-  app := JSONP(jsonServer)
+	app := JSONP(jsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-  response := NewMockResponseWriter()
+	response := NewMockResponseWriter()
 	app(response, request)
-  status := response.Status
-  headers := response.Header()
-  body := response.Body.String()
+	status := response.Status
+	headers := response.Header()
+	body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -120,15 +120,15 @@ func TestJSONPNoCallback(t *testing.T) {
 
 func TestJSONPInvalidCallback(t *testing.T) {
 	// Compile the stack
-  app := JSONP(jsonServer)
+	app := JSONP(jsonServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/?callback=invalid(callback)", nil)
-  response := NewMockResponseWriter()
+	response := NewMockResponseWriter()
 	app(response, request)
-  status := response.Status
-  headers := response.Header()
-  body := response.Body.String()
+	status := response.Status
+	headers := response.Header()
+	body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -155,14 +155,14 @@ func TestJSONPInvalidCallback(t *testing.T) {
 func BenchmarkJSONP(b *testing.B) {
 	b.StopTimer()
 
-  app := JSONP(jsonServer)
+	app := JSONP(jsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-    response := NewMockResponseWriter()
-    app(response, request)
+		response := NewMockResponseWriter()
+		app(response, request)
 	}
 	b.StopTimer()
 }
@@ -170,13 +170,13 @@ func BenchmarkJSONP(b *testing.B) {
 func BenchmarkNonJSONP(b *testing.B) {
 	b.StopTimer()
 
-  app := JSONP(nonJsonServer)
+	app := JSONP(nonJsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=parseResponse", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-    response := NewMockResponseWriter()
+		response := NewMockResponseWriter()
 		app(response, request)
 	}
 	b.StopTimer()
@@ -185,13 +185,13 @@ func BenchmarkNonJSONP(b *testing.B) {
 func BenchmarkJSONPNoCallback(b *testing.B) {
 	b.StopTimer()
 
-  app := JSONP(jsonServer)
+	app := JSONP(jsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-    response := NewMockResponseWriter()
+		response := NewMockResponseWriter()
 		app(response, request)
 	}
 	b.StopTimer()
@@ -200,13 +200,13 @@ func BenchmarkJSONPNoCallback(b *testing.B) {
 func BenchmarkJSONPInvalidCallback(b *testing.B) {
 	b.StopTimer()
 
-  app := JSONP(jsonServer)
+	app := JSONP(jsonServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/?callback=invalid(callback)", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-    response := NewMockResponseWriter()
+		response := NewMockResponseWriter()
 		app(response, request)
 	}
 	b.StopTimer()

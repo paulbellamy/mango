@@ -6,31 +6,31 @@ import (
 )
 
 func routingTestServer(w http.ResponseWriter, r *http.Request) {
-  w.Write([]byte("Hello World!"))
+	w.Write([]byte("Hello World!"))
 }
 
 func routingATestServer(w http.ResponseWriter, r *http.Request) {
-  w.Write([]byte("Server A"))
+	w.Write([]byte("Server A"))
 }
 
 func routingBTestServer(w http.ResponseWriter, r *http.Request) {
-  w.Write([]byte("Server B"))
+	w.Write([]byte("Server B"))
 }
 
 func TestRoutesSuccess(t *testing.T) {
 	// Compile the stack
-  app := Routes(
-    GET("/a", routingATestServer),
-    GET("/b", routingBTestServer),
-    ANY(".*", routingTestServer),
-  )
+	app := Routes(
+		GET("/a", routingATestServer),
+		GET("/b", routingBTestServer),
+		ANY(".*", routingTestServer),
+	)
 
 	// Request against A
 	request, err := http.NewRequest("GET", "http://localhost:3000/a", nil)
-  response := NewMockResponseWriter()
+	response := NewMockResponseWriter()
 	app(response, request)
-  status := response.Status
-  body := response.Body.String()
+	status := response.Status
+	body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -47,10 +47,10 @@ func TestRoutesSuccess(t *testing.T) {
 
 	// Request against B
 	request, err = http.NewRequest("GET", "http://localhost:3000/b", nil)
-  response = NewMockResponseWriter()
+	response = NewMockResponseWriter()
 	app(response, request)
-  status = response.Status
-  body = response.Body.String()
+	status = response.Status
+	body = response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -68,18 +68,18 @@ func TestRoutesSuccess(t *testing.T) {
 
 func TestRoutesFailure(t *testing.T) {
 	// Compile the stack
-  app := Routes(
-    GET("/a", routingATestServer),
-    GET("/b", routingBTestServer),
-    ANY(".*", routingTestServer),
-  )
+	app := Routes(
+		GET("/a", routingATestServer),
+		GET("/b", routingBTestServer),
+		ANY(".*", routingTestServer),
+	)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/c", nil)
-  response := NewMockResponseWriter()
+	response := NewMockResponseWriter()
 	app(response, request)
-  status := response.Status
-  body := response.Body.String()
+	status := response.Status
+	body := response.Body.String()
 
 	if err != nil {
 		t.Error(err)
@@ -98,17 +98,17 @@ func TestRoutesFailure(t *testing.T) {
 func BenchmarkRoutes(b *testing.B) {
 	b.StopTimer()
 
-  app := Routes(
-    GET("/a", routingATestServer),
-    GET("/b", routingBTestServer),
-    ANY(".*", routingTestServer),
-  )
+	app := Routes(
+		GET("/a", routingATestServer),
+		GET("/b", routingBTestServer),
+		ANY(".*", routingTestServer),
+	)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/a", nil)
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-    response := NewMockResponseWriter()
+		response := NewMockResponseWriter()
 		app(response, request)
 	}
 	b.StopTimer()
