@@ -14,7 +14,8 @@ func staticTestServer(w http.ResponseWriter, r *http.Request) {
 
 func TestStaticSuccess(t *testing.T) {
 	// Compile the stack
-	app := Static("./static", staticTestServer)
+	root := http.Dir("./static")
+	app := Static(root, staticTestServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/static.html", nil)
@@ -46,7 +47,8 @@ func TestStaticSuccess(t *testing.T) {
 
 func TestStaticNoUpstream(t *testing.T) {
 	// Compile the stack
-	app := Static("./static", nil)
+	root := http.Dir("./static")
+	app := Static(root, nil)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/not_a_file.html", nil)
@@ -71,7 +73,8 @@ func TestStaticNoUpstream(t *testing.T) {
 
 func TestStaticFail(t *testing.T) {
 	// Compile the stack
-	app := Static("./static", staticTestServer)
+	root := http.Dir("./static")
+	app := Static(root, staticTestServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/not_a_file.html", nil)
@@ -96,7 +99,8 @@ func TestStaticFail(t *testing.T) {
 
 func TestStaticBinaryFile(t *testing.T) {
 	// Compile the stack
-	app := Static("./static", staticTestServer)
+	root := http.Dir("./static")
+	app := Static(root, staticTestServer)
 
 	// Request against it
 	request, err := http.NewRequest("GET", "http://localhost:3000/binary_file.png", nil)
@@ -126,7 +130,9 @@ func TestStaticBinaryFile(t *testing.T) {
 func BenchmarkStatic(b *testing.B) {
 	b.StopTimer()
 
-	app := Static("./static", staticTestServer)
+	// Compile the stack
+	root := http.Dir("./static")
+	app := Static(root, staticTestServer)
 
 	request, _ := http.NewRequest("GET", "http://localhost:3000/static.html", nil)
 

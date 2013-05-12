@@ -24,10 +24,11 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	// Initialize our stack of middleware
+  root := http.Dir("./static")
 	app :=
 		Logger(
 			ShowErrors("",
-				Static("./static",
+				Static(root,
 					Hello)))
 
 	http.HandleFunc("/", app)

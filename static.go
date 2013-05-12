@@ -14,8 +14,7 @@ func fileExists(root http.FileSystem, path string) bool {
 	return false
 }
 
-func Static(directory string, f http.HandlerFunc) http.HandlerFunc {
-	root := http.Dir(directory)
+func Static(root http.FileSystem, f http.HandlerFunc) http.HandlerFunc {
 	fileServer := http.FileServer(root)
 
 	return func(w http.ResponseWriter, r *http.Request) {
