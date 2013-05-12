@@ -13,23 +13,23 @@ Applications are of the form:
       w.Write([]byte("Hello World))
     }
 
+Wrappers are designed to do pre/post processing around an application. For example, handling JSONP requests.
+
+There are also several helpers designed to simplify common tasks in a web application. For example, session handling, and basic auth.
+
+Where possible everything is designed to work independently, but also be composable.
+
 
 ## Installation
 
    $ goinstall github.com/paulbellamy/mango
 
 
-## Available Modules
-
-* Sessions
-
-  Usage: mango.Sessions(*r http.Request)
-
-  Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
+## Available Wrappers
   
 * ShowErrors
 
-  Usage: mango.ShowErrors(templateString string, f http.HandlerFunc) http.HandlerFunc
+  Usage: mango.ShowErrors(templateString string, app http.HandlerFunc) http.HandlerFunc
 
   Catch any panics thrown from the app, and display them in an HTML template. If templateString is "", a default template is used. Not recommended to use the default template in production as it could provide information helpful to attackers.
 
@@ -39,17 +39,35 @@ Applications are of the form:
 
   Takes a list of http.HandlerFuncs, and tries each one successively until one writes some data to the ResponseWriter.
 
+* GET/POST/PUT/DELETE/HEAD/OPTIONS/PATCH/ANY
+
+  Usage: mango.Get(path string, http.HandlerFunc) http.HandlerFunc
+
+  Creates a scoped handler which will only respond to the matching path regexp, and HTTP method. Best used in conjunction with the Routes helper.
+
 * Static
 
-  Usage: mango.Static(directory string, f http.HandlerFunc) f http.HandlerFunc
+  Usage: mango.Static(root http.FileSystem, app http.HandlerFunc) http.HandlerFunc
 
-  Serves static files from the directory provided. If file is not found, it calls f.
+  Serves static files from the directory provided. If file is not found, it calls app. As opposed to the built-in FileServer in net/http, this one will not return a 404 if an app is specified.
 
 * JSONP
 
-  Usage: mango.JSONP(f http.HandlerFunc)
+  Usage: mango.JSONP(app http.HandlerFunc) http.HandlerFunc
 
   Provides JSONP support. If a request has a 'callback' parameter, and your application responds with a Content-Type of "application/json", the JSONP middleware will wrap the response in the callback function and set the Content-Type to "application/javascript".
+
+## Available Helpers
+
+* NewBufferedResponseWriter(w http.ResponseWriter) *BufferedResponseWriter
+
+  Creates a new BufferedResponseWriter, which wraps a regular http.ResponseWriter. Data can be written to the BufferedResponseWriter until finished, then calling Flush() will send it to the client. If no http.ResponseWriter is wrapped, the BufferedResponseWriter will still function normally aside from the Flush() method.
+
+* Session
+
+  Usage: mango.Session(*r http.Request)
+
+  Basic session management. Returns a SessionWrapper object representing the session. Data stored here can be stored into the session cookie by calling the Write(w http.ResponseWriter) method.
 
 * Basic Auth
 
@@ -62,7 +80,7 @@ Applications are of the form:
     package main
 
     import (
-      "github.com/paulbellamy/mango"
+      . "github.com/paulbellamy/mango"
       "log"
       "net/http"
     )
@@ -73,7 +91,7 @@ Applications are of the form:
     }
 
     func main() {
-      app := mango.ShowErrors("", Hello)
+      app := ShowErrors("", Hello)
       http.HandleFunc("/", app)
       http.ListenAndServe(":3000", nil)
     }
@@ -87,7 +105,7 @@ routeNotFound handler returning a 404.
     package main
 
     import (
-      "github.com/paulbellamy/mango"
+      . "github.com/paulbellamy/mango"
       "log"
       "net/http"
     )
@@ -102,12 +120,13 @@ routeNotFound handler returning a 404.
     }
 
     func main() {
-      app := mango.ShowErrors("<html><body>{Error|html}</body></html>",
-             mango.Routing(
-               GET("/hello", hello),
-               GET("/bye", bye),
-               DEFAULT(http.NotFound),
-             ))
+      app :=
+        ShowErrors("<html><body>{Error|html}</body></html>",
+          Routes(
+            GET("/hello", hello),
+            GET("/bye", bye),
+            DEFAULT(http.NotFound),
+          ))
 
       http.HandleFunc("/", app)
       http.ListenAndServe(":3000", nil)
