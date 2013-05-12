@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "../../" // Point this to mango
+	. "mango"
 	"io/ioutil"
 	"log"
 	"math/rand"
