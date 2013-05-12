@@ -22,7 +22,7 @@ Where possible everything is designed to work independently, but also be composa
 
 ## Installation
 
-   $ goinstall github.com/paulbellamy/mango
+   $ go get github.com/paulbellamy/mango
 
 
 ## Available Wrappers
