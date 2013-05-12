@@ -28,12 +28,14 @@ func (w *instrumentedResponseWriter) WriteHeader(status int) {
 	w.wrapped.WriteHeader(status)
 }
 
-func methodRouter(method string) func(route string, f http.HandlerFunc) http.HandlerFunc {
-	return func(route string, f http.HandlerFunc) http.HandlerFunc {
+func methodRouter(method string) func(string, http.HandlerFunc) http.HandlerFunc {
+	return func(route string, app http.HandlerFunc) http.HandlerFunc {
 		regex := regexp.MustCompile(route)
 		return func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == method && regex.MatchString(r.URL.Path) {
-				f(w, r)
+			matches := regex.FindStringSubmatch(r.URL.Path)
+			if r.Method == method && len(matches) != 0 {
+				r.Header["Route-Matches"] = matches
+				app(w, r)
 			}
 		}
 	}
@@ -47,11 +49,13 @@ var HEAD = methodRouter("HEAD")
 var OPTIONS = methodRouter("OPTIONS")
 var PATCH = methodRouter("PATCH")
 
-var ANY = func(route string, f http.HandlerFunc) http.HandlerFunc {
+var ANY = func(route string, app http.HandlerFunc) http.HandlerFunc {
 	regex := regexp.MustCompile(route)
 	return func(w http.ResponseWriter, r *http.Request) {
-		if regex.MatchString(r.URL.Path) {
-			f(w, r)
+		matches := regex.FindStringSubmatch(r.URL.Path)
+		if len(matches) != 0 {
+			r.Header["Route-Matches"] = matches
+			app(w, r)
 		}
 	}
 }

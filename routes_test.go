@@ -17,11 +17,21 @@ func routingBTestServer(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Server B"))
 }
 
+func routingCTestServer(w http.ResponseWriter, r *http.Request) {
+	if r.Header["Route-Matches"][1] == "123" {
+		w.Write([]byte("Server C"))
+	} else {
+		w.WriteHeader(500)
+		w.Write([]byte("Test Failed"))
+	}
+}
+
 func TestRoutesSuccess(t *testing.T) {
 	// Compile the stack
 	app := Routes(
 		GET("/a", routingATestServer),
 		GET("/b", routingBTestServer),
+		GET("/c/(.*)", routingCTestServer),
 		ANY(".*", routingTestServer),
 	)
 
@@ -61,6 +71,26 @@ func TestRoutesSuccess(t *testing.T) {
 	}
 
 	expected = "Server B"
+	if string(body) != expected {
+		t.Error("Expected body:", string(body), "to equal:", expected)
+	}
+
+	// Request against C
+	request, err = http.NewRequest("GET", "http://localhost:3000/c/123", nil)
+	response = NewBufferedResponseWriter(nil)
+	app(response, request)
+	status = response.Status
+	body = response.Body.String()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if status != 200 {
+		t.Error("Expected status to equal 200, got:", status)
+	}
+
+	expected = "Server C"
 	if string(body) != expected {
 		t.Error("Expected body:", string(body), "to equal:", expected)
 	}
