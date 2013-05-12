@@ -1,4 +1,3 @@
-// Mango is a modular web-application framework for Go, inspired by Rack and PEP333.
 package mango
 
 import (
@@ -14,6 +13,8 @@ type BufferedResponseWriter struct {
 	Body    bytes.Buffer
 }
 
+// Create a new BufferedResponseWriter wrapping w. If w is nil, no
+// ResponseWriter is wrapped, but calling Flush may panic.
 func NewBufferedResponseWriter(w http.ResponseWriter) *BufferedResponseWriter {
 	return &BufferedResponseWriter{
 		headers: make(map[string][]string),
@@ -40,7 +41,8 @@ func (w *BufferedResponseWriter) WriteHeader(status int) {
 	}
 }
 
-// Send data to the client
+// Send data to the client. If no response is ready in the
+// BufferedResponseWriter, then nothing will be done.
 func (w *BufferedResponseWriter) Flush() {
 	if w.started {
 		output_headers := w.wrapped.Header()
