@@ -65,7 +65,7 @@ Where possible everything is designed to work independently, but also be composa
 
 * Session
 
-  Usage: mango.Session(*r http.Request)
+  Usage: mango.Session(r *http.Request, key, secret string, options *CookieOptions) *SessionWrapper
 
   Basic session management. Returns a SessionWrapper object representing the session. Data stored here can be stored into the session cookie by calling the Write(w http.ResponseWriter) method.
 
@@ -125,7 +125,7 @@ routeNotFound handler returning a 404.
           Routes(
             GET("/hello", hello),
             GET("/bye", bye),
-            DEFAULT(http.NotFound),
+            ANY(".*", http.NotFound),
           ))
 
       http.HandleFunc("/", app)
