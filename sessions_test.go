@@ -84,8 +84,11 @@ func BenchmarkSessions(b *testing.B) {
 	b.StopTimer()
 
 	app := func(w http.ResponseWriter, r *http.Request) {
-		session := Session(r, "my_secret", "my_key", &CookieOptions{Domain: ".my.domain.com"})
-		counter := session.Get("counter").(int)
+		session := Session(r, "my_key", "my_secret", &CookieOptions{Domain: ".my.domain.com"})
+		counter, ok := session.Get("counter").(int)
+		if !ok {
+			b.Error("Counter not found in session")
+		}
 		if counter != 1 {
 			b.Error("Expected session[\"counter\"] to equal:", 1, "got:", counter)
 		}
@@ -94,7 +97,15 @@ func BenchmarkSessions(b *testing.B) {
 		w.Write([]byte("Hello World!"))
 	}
 
-	request, _ := http.NewRequest("GET", "http://localhost:3000/", nil)
+	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+	initial_cookie := new(http.Cookie)
+	initial_cookie.Name = "my_key"
+	initial_cookie.Value = encodeCookie(map[string]interface{}{"counter": 1}, "my_secret")
+	request.AddCookie(initial_cookie)
+
+	if err != nil {
+		b.Error(err)
+	}
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
