@@ -43,6 +43,10 @@ func (s *SessionWrapper) Set(name string, value interface{}) {
 	}
 }
 
+func (s *SessionWrapper) Del(name string) {
+	delete(s.values, name)
+}
+
 func (s *SessionWrapper) Serialize() string {
 	return encodeCookie(s.values, s.secret)
 }
@@ -53,14 +57,15 @@ func (s *SessionWrapper) Write(w http.ResponseWriter) {
 		if newValue == "" {
 			return
 		}
-		cookie := new(http.Cookie)
-		cookie.Name = s.key
-		cookie.Value = newValue
-		cookie.Path = s.cookieOptions.Path
-		cookie.Domain = s.cookieOptions.Domain
-		cookie.MaxAge = s.cookieOptions.MaxAge
-		cookie.Secure = s.cookieOptions.Secure
-		cookie.HttpOnly = s.cookieOptions.HttpOnly
+		cookie := &http.Cookie{
+			Name:     s.key,
+			Value:    newValue,
+			Path:     s.cookieOptions.Path,
+			Domain:   s.cookieOptions.Domain,
+			MaxAge:   s.cookieOptions.MaxAge,
+			Secure:   s.cookieOptions.Secure,
+			HttpOnly: s.cookieOptions.HttpOnly,
+		}
 		w.Header().Add("Set-Cookie", cookie.String())
 	}
 }
@@ -204,6 +209,10 @@ type CookieOptions struct {
 }
 
 func Session(r *http.Request, key, secret string, options *CookieOptions) *SessionWrapper {
+	if options == nil {
+		options = &CookieOptions{}
+	}
+
 	wrapper := &SessionWrapper{
 		r:             r,
 		key:           key,

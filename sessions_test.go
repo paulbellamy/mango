@@ -23,6 +23,9 @@ func TestSessionEncodingDecoding(t *testing.T) {
 func TestSessions(t *testing.T) {
 	app := func(w http.ResponseWriter, r *http.Request) {
 		session := Session(r, "my_key", "my_secret", &CookieOptions{Domain: ".my.domain.com"})
+
+		session.Del("delete_me")
+
 		counter, ok := session.Get("counter").(int)
 		if !ok {
 			t.Error("Counter not found in session")
@@ -39,7 +42,7 @@ func TestSessions(t *testing.T) {
 	request, err := http.NewRequest("GET", "http://localhost:3000/", nil)
 	initial_cookie := new(http.Cookie)
 	initial_cookie.Name = "my_key"
-	initial_cookie.Value = encodeCookie(map[string]interface{}{"counter": 1}, "my_secret")
+	initial_cookie.Value = encodeCookie(map[string]interface{}{"counter": 1, "delete_me": true}, "my_secret")
 	initial_cookie.Domain = ".my.domain.com"
 	request.AddCookie(initial_cookie)
 	response := NewBufferedResponseWriter(nil)
