@@ -32,11 +32,17 @@ func methodRouter(method string) func(string, http.HandlerFunc) http.HandlerFunc
 	return func(route string, app http.HandlerFunc) http.HandlerFunc {
 		regex := regexp.MustCompile(route)
 		return func(w http.ResponseWriter, r *http.Request) {
-			matches := regex.FindStringSubmatch(r.URL.Path)
-			if r.Method == method && len(matches) != 0 {
-				r.Header["Route-Matches"] = matches
-				app(w, r)
+			if r.Method != method {
+				return
 			}
+
+			matches := regex.FindStringSubmatch(r.URL.Path)
+			if len(matches) == 0 {
+				return
+			}
+
+			r.Header["Route-Matches"] = matches
+			app(w, r)
 		}
 	}
 }
