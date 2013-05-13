@@ -5,3 +5,4 @@
 *.sw?
 _obj
 _test*
+pkg
