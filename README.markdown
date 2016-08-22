@@ -2,6 +2,8 @@
 
 Mango is a modular web-application framework for Go, inspired by [Rack](http://github.com/rack/rack) and [PEP333](http://www.python.org/dev/peps/pep-0333/).
 
+*Note: Not actively maintained.*
+
 ## Overview
 
 Mango is most of all a framework for other modules, and apps.  It takes a list of middleware, and an application and compiles them into a single http server object. The middleware and apps are written in a functional style, which keeps everything very self-contained.
