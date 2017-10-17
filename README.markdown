@@ -35,7 +35,7 @@ Where:
 
 ## Installation
 
-   $ goinstall github.com/paulbellamy/mango
+   $ go install github.com/paulbellamy/mango
 
 
 ## Available Modules
