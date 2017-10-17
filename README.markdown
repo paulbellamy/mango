@@ -16,9 +16,11 @@ As in Rack, the API is very minimal.
 
 Applications are of the form:
 
-    func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      return 200, mango.Headers{}, mango.Body("Hello World!")
-    }
+```go
+func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+  return 200, mango.Headers{}, mango.Body("Hello World!")
+}
+```
 
 Where:
 
@@ -40,37 +42,37 @@ Where:
 
 * Sessions
 
-  Usage: mango.Sessions(app_secret, cookie_name, cookie_domain string)
+  Usage: `mango.Sessions(app_secret, cookie_name, cookie_domain string)`
 
   Basic session management. Provides a mango.Env.Session() helper which returns a map[string]interface{} representing the session.  Any data stored in here will be serialized into the response session cookie.
   
 * Logger
 
-  Usage: mango.Logger(custom_logger \*log.Logger)
+  Usage: `mango.Logger(custom_logger \*log.Logger)`
 
   Provides a way to set a custom log.Logger object for the app. If this middleware is not provided Mango will set up a default logger to os.Stdout for the app to log to.
 
 * ShowErrors
 
-  Usage: mango.ShowErrors(templateString string)
+  Usage: `mango.ShowErrors(templateString string)`
 
   Catch any panics thrown from the app, and display them in an HTML template. If templateString is "", a default template is used. Not recommended to use the default template in production as it could provide information helpful to attackers.
 
 * Routing
 
-  Usage: mango.Routing(routes map[string]App)
+  Usage: `mango.Routing(routes map[string]App)`
 
   "routes" is of the form { "/path1(.\*)": sub-stack1, "/path2(.\*)": sub-stack2 }.  It lets us route different requests to different mango sub-stacks based on regexing the path.
 
 * Static
 
-  Usage: mango.Static(directory string)
+  Usage: `mango.Static(directory string)`
 
   Serves static files from the directory provided.
 
 * JSONP
 
-  Usage: mango.JSONP
+  Usage: `mango.JSONP`
 
   Provides JSONP support. If a request has a 'callback' parameter, and your application responds with a Content-Type of "application/json", the JSONP middleware will wrap the response in the callback function and set the Content-Type to "application/javascript".
 
@@ -82,37 +84,43 @@ Where:
 
 ## Example App
 
-    package main
+```go
+package main
 
-    import (
-      "github.com/paulbellamy/mango"
-    )
+import (
+  "github.com/paulbellamy/mango"
+)
 
-    func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
-      return 200, mango.Headers{}, mango.Body("Hello World!")
-    }
+func Hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+  env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
+  return 200, mango.Headers{}, mango.Body("Hello World!")
+}
 
-    func main() {
-      stack := new(mango.Stack)
-      stack.Address = ":3000"
-      stack.Middleware(mango.ShowErrors(""))
-      stack.Run(Hello)
-    }
+func main() {
+  stack := new(mango.Stack)
+  stack.Address = ":3000"
+  stack.Middleware(mango.ShowErrors(""))
+  stack.Run(Hello)
+}
+```
 
 ## Mango Stacks
 
 Mango revolves around the idea of a "stack", which is a collection of middleware and an application.  Stacks can be compiled without being run.  When you compile a stack it returns a Mango App which incorporates all of the middleware and the application.  We can compile a Mango stack like:
 
-    stack := new(mango.Stack)
-    var compiled mango.App = stack.Compile(Hello)
+```go
+stack := new(mango.Stack)
+var compiled mango.App = stack.Compile(Hello)
+```
 
 This compiled stack can be passed to the Routing middleware as a "sub-stack".
 
 Stack can also be compiled into an http.HandlerFunc by calling:
 
-    stack := new(mango.Stack)
-    var listener http.HandlerFunc = stack.HandlerFunc(Hello)
+```go
+stack := new(mango.Stack)
+var listener http.HandlerFunc = stack.HandlerFunc(Hello)
+```
 
 This returns a http.HandlerFunc ready to be passed to http.ListenAndServe, which incorporates the entire Mango stack.
 
@@ -124,75 +132,83 @@ If you build some middleware and think others might find it useful, please let m
 
 An extremely basic middleware package is simply a function:
 
-    func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
-      // Call our upstream app
-      status, headers, body := app(env)
+```go
+func SilenceErrors(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
+  // Call our upstream app
+  status, headers, body := app(env)
 
-      // If we got an error
-      if status == 500 {
-        // Silence it!
-        status = 200
-        headers = mango.Headers{}
-        body = "Silence is golden!"
-      }
+  // If we got an error
+  if status == 500 {
+    // Silence it!
+    status = 200
+    headers = mango.Headers{}
+    body = "Silence is golden!"
+  }
 
-      // Pass the response back to the client
-      return status, headers, body
-    }
+  // Pass the response back to the client
+  return status, headers, body
+}
+```
 
 To use this middleware we would do:
 
-    func main() {
-      stack := new(mango.Stack)
-      stack.Address = ":3000"
+```go
+func main() {
+  stack := new(mango.Stack)
+  stack.Address = ":3000"
 
-      stack.Middleware(SilenceErrors) // Include our custom middleware
+  stack.Middleware(SilenceErrors) // Include our custom middleware
 
-      stack.Run(Hello)
-    }
+  stack.Run(Hello)
+}
+```
 
 For more complex middleware we may want to pass it configuration parameters. An example middleware package is one which will replace any image tags with funny pictures of cats:
 
-    func Cats(cat_images []string) mango.Middleware {
-      // Initial setup stuff here
-      // Done on application setup
+```go
+func Cats(cat_images []string) mango.Middleware {
+  // Initial setup stuff here
+  // Done on application setup
 
-      // Initialize our regex for finding image links
-      regex := regexp.MustCompile("[^\"']+(.jpg|.png|.gif)")
+  // Initialize our regex for finding image links
+  regex := regexp.MustCompile("[^\"']+(.jpg|.png|.gif)")
 
-      // This is our middleware's request handler
-      return func(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
-        // Call the upstream application
-        status, headers, body := app(env)
+  // This is our middleware's request handler
+  return func(env mango.Env, app mango.App) (mango.Status, mango.Headers, mango.Body) {
+    // Call the upstream application
+    status, headers, body := app(env)
 
-        // Pick a random cat image
-        image_url := cat_images[rand.Int()%len(cat_images)]
+    // Pick a random cat image
+    image_url := cat_images[rand.Int()%len(cat_images)]
 
-        // Substitute in our cat picture
-        body = mango.Body(regex.ReplaceAllString(string(body), image_url))
+    // Substitute in our cat picture
+    body = mango.Body(regex.ReplaceAllString(string(body), image_url))
 
-        // Send the modified response onwards
-        return status, headers, body
-      }
-    }
+    // Send the modified response onwards
+    return status, headers, body
+  }
+}
+```
 
 This works by building a closure (function) based on the parameters we pass, and returning it as the middleware. Through the magic of closures, the value we pass for cat_images gets built into the function returned.
 
 To use our middleware we would do:
 
-    func main() {
+```go
+func main() {
 
-      stack := new(mango.Stack)
-      stack.Address = ":3000"
+  stack := new(mango.Stack)
+  stack.Address = ":3000"
 
-      // Initialize our cats middleware with our list of cat_images
-      cat_images := []string{"ceiling_cat.jpg", "itteh_bitteh_kittehs.jpg", "monorail_cat.jpg"}
-      cats_middleware := Cats(cat_images)
+  // Initialize our cats middleware with our list of cat_images
+  cat_images := []string{"ceiling_cat.jpg", "itteh_bitteh_kittehs.jpg", "monorail_cat.jpg"}
+  cats_middleware := Cats(cat_images)
 
-      stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
+  stack.Middleware(cats_middleware) // Include the Cats middleware in our stack
 
-      stack.Run(Hello)
-    }
+  stack.Run(Hello)
+}
+```
 
 ## Routing example
 
@@ -200,38 +216,39 @@ The following example routes "/hello" traffic to the hello handler and
 "/bye" traffic to the bye handler, any other traffic goes to
 routeNotFound handler returning a 404.
 
-    package main
+```go
+package main
 
-    import(
-      "github.com/paulbellamy/mango"
-      "fmt"
-    )
+import(
+  "github.com/paulbellamy/mango"
+  "fmt"
+)
 
-    func hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
-      return 200, mango.Headers{}, mango.Body("Hello World!")
-    }
+func hello(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+  env.Logger().Println("Got a", env.Request().Method, "request for", env.Request().RequestURI)
+  return 200, mango.Headers{}, mango.Body("Hello World!")
+}
 
-    func bye(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      return 200, mango.Headers{}, mango.Body("Bye Bye!")
-    }
+func bye(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+  return 200, mango.Headers{}, mango.Body("Bye Bye!")
+}
 
-    func routeNotFound(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
-      return 404, mango.Headers{}, mango.Body("You probably got lost :(")
-    }
+func routeNotFound(env mango.Env) (mango.Status, mango.Headers, mango.Body) {
+  return 404, mango.Headers{}, mango.Body("You probably got lost :(")
+}
 
-    func main() {
-      routes := make(map[string]mango.App)
-      routes["/hello"] = new(mango.Stack).Compile(hello)
-      routes["/bye"] = new(mango.Stack).Compile(bye)
+func main() {
+  routes := make(map[string]mango.App)
+  routes["/hello"] = new(mango.Stack).Compile(hello)
+  routes["/bye"] = new(mango.Stack).Compile(bye)
 
-      testServer := new(mango.Stack)
-      testServer.Middleware(mango.ShowErrors("<html><body>{Error|html}</body></html>"), mango.Routing(routes))
-      testServer.Address = "localhost:3000"
-      testServer.Run(routeNotFound)
-      fmt.Printf("Running server on: %s\n", testServer.Address)
-    }
-
+  testServer := new(mango.Stack)
+  testServer.Middleware(mango.ShowErrors("<html><body>{Error|html}</body></html>"), mango.Routing(routes))
+  testServer.Address = "localhost:3000"
+  testServer.Run(routeNotFound)
+  fmt.Printf("Running server on: %s\n", testServer.Address)
+}
+```
 
 ## About
 
